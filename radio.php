@@ -134,6 +134,42 @@ require_once __DIR__ . '/includes/header.php';
     animation: blink-live 1.5s infinite;
     background: #10b981; /* Verde quando está tocando */
 }
+
+/* Responsividade Mobile para a Página da Rádio */
+@media (max-width: 600px) {
+    .radio-page-container {
+        margin: 20px auto;
+        border-radius: 12px;
+    }
+    .radio-page-header {
+        padding: 40px 15px;
+    }
+    .radio-page-header h1 {
+        font-size: 2rem;
+    }
+    .radio-page-header p {
+        font-size: 1rem;
+    }
+    .radio-player-body {
+        padding: 60px 15px 40px;
+        gap: 25px;
+    }
+    .radio-icon-large {
+        width: 90px;
+        height: 90px;
+    }
+    .btn-play-large {
+        width: 65px;
+        height: 65px;
+        font-size: 1.5rem;
+    }
+    .radio-status {
+        font-size: 1rem;
+    }
+    .volume-slider {
+        width: 100px;
+    }
+}
 </style>
 
 <div class="container">

@@ -66,15 +66,17 @@
 </footer>
 
 <!-- Floating Radio Player -->
-<div id="floating-radio" data-turbo-permanent="true" style="position: fixed; bottom: 30px; right: 30px; background: var(--color-surface); padding: 15px 20px; border-radius: 50px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 15px; z-index: 9999; border: 2px solid var(--color-primary); transition: transform 0.3s ease;">
-    <div style="width: 55px; height: 55px; display: flex; align-items: center; justify-content: center; border-radius: 50%; overflow: hidden; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
-        <img src="<?= BASE_URL ?>/assets/logo-antena1.jpg" alt="Antena 1" style="width: 100%; height: 100%; object-fit: cover;">
-    </div>
-    <div style="display: flex; flex-direction: column;">
-        <strong style="font-size: 0.95rem; color: var(--color-text);">Antena 1</strong>
-        <span style="font-size: 0.75rem; color: var(--color-text-muted);">Campo Grande</span>
-    </div>
-    <button id="antena1-play-btn" style="background: var(--color-primary); color: white; border: none; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(204, 0, 0, 0.3); transition: transform 0.2s, background 0.3s;" aria-label="Play/Pause">
+<div id="floating-radio" class="floating-radio" data-turbo-permanent="true">
+    <a href="<?= BASE_URL ?>/radio.php" style="display: flex; align-items: center; gap: 15px; text-decoration: none; flex-grow: 1;">
+        <div class="floating-radio-logo-container">
+            <img src="<?= BASE_URL ?>/assets/logo-antena1.jpg" alt="Antena 1">
+        </div>
+        <div class="floating-radio-info">
+            <span class="floating-radio-title">Antena 1</span>
+            <span class="floating-radio-subtitle">Campo Grande</span>
+        </div>
+    </a>
+    <button id="antena1-play-btn" class="floating-radio-btn" aria-label="Play Radio">
         <i class="fas fa-play" style="margin-left: 3px;"></i>
     </button>
 </div>
@@ -92,7 +94,7 @@
 ?>
 
 <!-- 7. Integração WhatsApp -->
-<a href="https://wa.me/5567998732692" target="_blank" title="Fale conosco" style="position: fixed; bottom: 30px; left: 30px; background-color: #25D366; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 9999; text-decoration: none; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+<a href="https://wa.me/5567998732692" target="_blank" title="Fale conosco" class="whatsapp-float">
     <i class="fab fa-whatsapp"></i>
 </a>
 
