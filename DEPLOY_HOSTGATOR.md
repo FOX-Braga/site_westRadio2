@@ -1,6 +1,6 @@
 # 🚀 Guia Definitivo e Detalhado de Instalação na HostGator
 
-Este é o manual completo feito **passo a passo para iniciantes** sobre como colocar o seu portal **West News** no ar utilizando a hospedagem da HostGator (painel cPanel).
+Este é o manual completo feito **passo a passo para iniciantes** sobre como colocar o seu portal **96 News** no ar utilizando a hospedagem da HostGator (painel cPanel).
 
 Não se preocupe se você não tem experiência técnica! Siga os passos exatamente como descritos abaixo e seu site estará funcionando perfeitamente.
 
@@ -63,9 +63,9 @@ Agora o seu site precisa saber a senha do cofre que você acabou de criar.
 ```php
 define('DB_DRIVER', 'mysql'); 
 define('DB_HOST', 'localhost');
-define('DB_USER', 'westuser');  <-- VAMOS MUDAR ISSO
+define('DB_USER', '96user');  <-- VAMOS MUDAR ISSO
 define('DB_PASS', 'west123');   <-- VAMOS MUDAR ISSO
-define('DB_NAME', 'west_news'); <-- VAMOS MUDAR ISSO
+define('DB_NAME', '96_news'); <-- VAMOS MUDAR ISSO
 ```
 
 4. **Altere cuidadosamente** o texto que está entre as aspas simples, colocando os dados que você anotou no Passo 2. Vai ficar assim (substitua pelos seus dados reais):
@@ -111,7 +111,7 @@ A HostGator esconde arquivos muito sensíveis, precisamos ter certeza de que ele
 
 ## 🎉 Pronto! O Site está no Ar
 
-Seu portal de notícias West News já deve estar funcionando perfeitamente.
+Seu portal de notícias 96 News já deve estar funcionando perfeitamente.
 
 1. Abra uma nova aba no seu navegador e digite o endereço do seu site: `www.seusite.com.br`
 2. Você verá a página inicial do portal.
@@ -119,7 +119,7 @@ Seu portal de notícias West News já deve estar funcionando perfeitamente.
    `www.seusite.com.br/admin`
 
 ### 🔑 Acesso do Administrador:
-- **Email:** `admin@westnews.com`
+- **Email:** `admin@96news.com`
 - **Senha:** `senha123` *(Recomendamos fortemente trocar a senha no painel o mais rápido possível!)*
 
 ---

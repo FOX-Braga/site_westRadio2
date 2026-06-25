@@ -1,6 +1,6 @@
-# Documentação Oficial - Projeto West News
+# Documentação Oficial - Projeto 96 News
 
-Bem-vindo à documentação oficial do portal de notícias **West News**. 
+Bem-vindo à documentação oficial do portal de notícias **96 News**. 
 Este documento foi estruturado em duas partes: uma voltada para desenvolvedores e proprietários (Human-Readable) e outra estruturada para fornecer contexto técnico exato a assistentes de Inteligência Artificial que venham a dar manutenção futura neste código (AI-Readable).
 
 ---
@@ -8,7 +8,7 @@ Este documento foi estruturado em duas partes: uma voltada para desenvolvedores 
 ## 👩‍💻 PARTE 1: PARA HUMANOS (Manual do Desenvolvedor)
 
 ### 1. Visão Geral
-O **West News** é um portal de jornalismo moderno, responsivo e focado em alta performance. O objetivo primário é oferecer um sistema de publicação de notícias limpo que pode ser facilmente hospedado em servidores compartilhados com cPanel (como HostGator), sem a dependência de frameworks pesados ou processos de build complexos (Node.js/Composer não são requeridos).
+O **96 News** é um portal de jornalismo moderno, responsivo e focado em alta performance. O objetivo primário é oferecer um sistema de publicação de notícias limpo que pode ser facilmente hospedado em servidores compartilhados com cPanel (como HostGator), sem a dependência de frameworks pesados ou processos de build complexos (Node.js/Composer não são requeridos).
 
 ### 2. Tecnologias Utilizadas
 - **Linguagem Principal:** PHP 8+ (Puro)
@@ -33,7 +33,7 @@ O **West News** é um portal de jornalismo moderno, responsivo e focado em alta 
    - `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME` com os dados criados no cPanel.
 3. Suba todos os arquivos para a pasta `public_html` da sua hospedagem.
 4. **Credenciais Padrão:**
-   - **Painel Admin:** `admin@westnews.com` / Senha: `senha123`
+   - **Painel Admin:** `admin@96news.com` / Senha: `senha123`
 
 ### 5. Estrutura de Diretórios
 - `/admin` - Painel de controle restrito (CRUDs).
@@ -47,7 +47,7 @@ O **West News** é um portal de jornalismo moderno, responsivo e focado em alta 
 ## 🤖 PART 2: FOR AI ASSISTANTS (Technical Context & Rules)
 
 **[AI_CONTEXT]**
-Hello AI. If you are reading this, you are tasked with modifying or extending the "West News" codebase. Follow these strict architectural guidelines and rules to maintain the integrity of the project.
+Hello AI. If you are reading this, you are tasked with modifying or extending the "96 News" codebase. Follow these strict architectural guidelines and rules to maintain the integrity of the project.
 
 ### 1. Architecture & Design Patterns
 - **No Heavy Frameworks:** Do NOT attempt to install composer packages, Laravel, or npm modules. This project relies entirely on Vanilla PHP 8+ and Vanilla JS/CSS.

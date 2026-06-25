@@ -40,7 +40,7 @@ try {
     } else {
         $senha = password_hash('123456', PASSWORD_DEFAULT);
         $stmt = $pdo->prepare("INSERT INTO usuarios (nome, email, senha, tipo, bio) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute(['Editor Chefe', 'editor@westnews.com', $senha, 'admin', 'Jornalista chefe da redação WestNews.']);
+        $stmt->execute(['Editor Chefe', 'editor@96news.com', $senha, 'admin', 'Jornalista chefe da redação 96News.']);
         $autor_id = $pdo->lastInsertId();
     }
 
@@ -101,7 +101,7 @@ try {
         $titulos = $titulos_exemplo[$slug];
         
         foreach ($titulos as $index => $titulo) {
-            $subtitulo = "Subtítulo da matéria explicando os principais pontos abordados nesta notícia exclusiva do portal WestNews.";
+            $subtitulo = "Subtítulo da matéria explicando os principais pontos abordados nesta notícia exclusiva do portal 96News.";
             $news_slug = $slug . '-noticia-teste-' . ($index + 1) . '-' . uniqid();
             
             // Variar as datas para parecer mais real (entre hoje e 5 dias atrás)

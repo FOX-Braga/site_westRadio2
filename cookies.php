@@ -1,5 +1,5 @@
 <?php
-$page_title = "Política de Cookies - West News";
+$page_title = "Política de Cookies - 96 News";
 require_once __DIR__ . '/includes/header.php';
 ?>
 
@@ -17,7 +17,7 @@ require_once __DIR__ . '/includes/header.php';
         <p style="margin-bottom: 25px;">Cookies são pequenos arquivos de texto que um site salva no seu computador ou dispositivo móvel quando você o visita. Eles permitem que o site lembre de suas ações e preferências (como login, idioma, tamanho da fonte e outras preferências de exibição) por um período de tempo, para que você não precise redigitá-los sempre que retornar ao site ou navegar de uma página para outra.</p>
         
         <h2 style="font-size: 1.6rem; margin-top: 40px; margin-bottom: 15px; color: var(--color-primary);">Como usamos os Cookies?</h2>
-        <p style="margin-bottom: 15px;">O West News utiliza cookies para os seguintes fins:</p>
+        <p style="margin-bottom: 15px;">O 96 News utiliza cookies para os seguintes fins:</p>
         <ul style="margin-bottom: 25px; padding-left: 20px;">
             <li style="margin-bottom: 10px;"><strong>Cookies Estritamente Necessários:</strong> Essenciais para permitir que você navegue pelo portal e utilize seus recursos, como acessar áreas seguras (Painel de Usuário).</li>
             <li style="margin-bottom: 10px;"><strong>Cookies de Desempenho e Análise:</strong> Coletam informações sobre como os visitantes usam o site (por exemplo, quais páginas são mais acessadas), nos ajudando a melhorar a usabilidade da plataforma. Usamos ferramentas de terceiros de forma anônima.</li>

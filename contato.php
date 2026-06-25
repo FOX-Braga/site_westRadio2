@@ -1,5 +1,5 @@
 <?php
-$page_title = "Fale Conosco - West News";
+$page_title = "Fale Conosco - 96 News";
 require_once __DIR__ . '/includes/header.php';
 
 $mensagem_enviada = false;
@@ -26,19 +26,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div style="margin-bottom: 30px;">
                 <h4 style="font-size: 1.1rem; margin-bottom: 5px;"><i class="fas fa-newspaper" style="color: var(--color-primary); margin-right: 8px;"></i> Redação</h4>
                 <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 5px;">Sugestões de pautas, denúncias e correções.</p>
-                <a href="mailto:redacao@westnews.com" style="color: var(--color-primary); font-weight: 600;">redacao@westnews.com</a>
+                <a href="mailto:redacao@96news.com" style="color: var(--color-primary); font-weight: 600;">redacao@96news.com</a>
             </div>
             
             <div style="margin-bottom: 30px;">
                 <h4 style="font-size: 1.1rem; margin-bottom: 5px;"><i class="fas fa-bullhorn" style="color: var(--color-primary); margin-right: 8px;"></i> Comercial / Anuncie</h4>
                 <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 5px;">Mídia kit, publicidade e parcerias institucionais.</p>
-                <a href="mailto:comercial@westnews.com" style="color: var(--color-primary); font-weight: 600;">comercial@westnews.com</a>
+                <a href="mailto:comercial@96news.com" style="color: var(--color-primary); font-weight: 600;">comercial@96news.com</a>
             </div>
             
             <div style="margin-bottom: 30px;">
                 <h4 style="font-size: 1.1rem; margin-bottom: 5px;"><i class="fas fa-headset" style="color: var(--color-primary); margin-right: 8px;"></i> Central do Assinante</h4>
                 <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 5px;">Dúvidas sobre sua assinatura ou acesso.</p>
-                <a href="mailto:assinante@westnews.com" style="color: var(--color-primary); font-weight: 600;">assinante@westnews.com</a><br>
+                <a href="mailto:assinante@96news.com" style="color: var(--color-primary); font-weight: 600;">assinante@96news.com</a><br>
                 <span style="font-size: 0.9rem; color: var(--color-text-muted);"><i class="fab fa-whatsapp"></i> (67) 99999-0000</span>
             </div>
             

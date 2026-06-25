@@ -10,7 +10,7 @@ requirePanelAccess();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= isset($page_title) ? escape($page_title) . ' - Admin West News' : 'Admin West News' ?></title>
+    <title><?= isset($page_title) ? escape($page_title) . ' - Admin 96 News' : 'Admin 96 News' ?></title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Adicionando o CSS base da aplicação para reaproveitar botões e forms -->
@@ -27,7 +27,7 @@ requirePanelAccess();
     <aside class="admin-sidebar">
         <div class="admin-logo logo-container" style="display: flex; align-items: center; justify-content: center; padding: 20px;">
             <a href="<?= BASE_URL ?>/admin/index.php" class="logo" style="display: block; width: 100%; text-align: center;">
-                <img src="<?= BASE_URL ?>/assets/images/westnews_logo.png" alt="WestNews" style="max-width: 140px; height: auto; mix-blend-mode: multiply;">
+                <img src="<?= BASE_URL ?>/assets/logo-96news.png" alt="96News" style="max-width: 140px; height: auto; mix-blend-mode: multiply; object-fit: contain;">
             </a>
         </div>
         <nav class="admin-nav">

@@ -1,12 +1,12 @@
 <?php
-$page_title = "Quem Somos - West News";
+$page_title = "Quem Somos - 96 News";
 require_once __DIR__ . '/includes/header.php';
 ?>
 
 <div style="background-color: var(--color-surface); padding: 60px 0; border-bottom: 1px solid var(--color-border); margin-bottom: 40px; text-align: center;">
     <div class="container">
         <h1 style="font-family: var(--font-title); font-size: 3rem; color: var(--color-primary); margin-bottom: 15px;">Quem Somos</h1>
-        <p style="font-size: 1.2rem; color: var(--color-text-muted); max-width: 800px; margin: 0 auto; line-height: 1.6;">O <strong>West News</strong> é um portal de jornalismo digital independente dedicado a levar informação com credibilidade, agilidade e profundidade para o Brasil e o mundo.</p>
+        <p style="font-size: 1.2rem; color: var(--color-text-muted); max-width: 800px; margin: 0 auto; line-height: 1.6;">O <strong>96 News</strong> é um portal de jornalismo digital independente dedicado a levar informação com credibilidade, agilidade e profundidade para o Brasil e o mundo.</p>
     </div>
 </div>
 
@@ -19,7 +19,7 @@ require_once __DIR__ . '/includes/header.php';
             <p style="font-size: 1.1rem; line-height: 1.8; color: var(--color-text-muted);">Com redações conectadas 24 horas por dia, nós cobrimos os principais eventos da Política, Economia, Cultura e Tecnologia global, entregando não apenas a notícia, mas o contexto por trás dela.</p>
         </div>
         <div>
-            <img src="<?= BASE_URL ?>/assets/images/westnews_logo.png" alt="Redação West News" style="width: 100%; border-radius: 8px; box-shadow: var(--shadow-sm); padding: 40px; background: #fff; border: 1px solid var(--color-border);">
+            <img src="<?= BASE_URL ?>/assets/logo-96news.png" alt="Redação 96 News" style="width: 100%; border-radius: 8px; box-shadow: var(--shadow-sm); padding: 40px; background: #fff; border: 1px solid var(--color-border); object-fit: contain;">
         </div>
     </div>
 

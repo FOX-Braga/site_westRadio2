@@ -1,5 +1,5 @@
 <?php
-$page_title = "Mapa do Site - West News";
+$page_title = "Mapa do Site - 96 News";
 require_once __DIR__ . '/includes/header.php';
 
 $pdo = Database::getInstance();
@@ -9,7 +9,7 @@ $categorias = $pdo->query("SELECT * FROM categorias ORDER BY nome ASC")->fetchAl
 <div style="background-color: var(--color-surface); padding: 50px 0; border-bottom: 1px solid var(--color-border); margin-bottom: 40px;">
     <div class="container" style="max-width: 1000px;">
         <h1 style="font-family: var(--font-title); font-size: 2.5rem; color: var(--color-primary); margin-bottom: 10px;">Mapa do Site</h1>
-        <p style="color: var(--color-text-muted); font-size: 1.1rem;">Navegue por toda a estrutura do portal West News.</p>
+        <p style="color: var(--color-text-muted); font-size: 1.1rem;">Navegue por toda a estrutura do portal 96 News.</p>
     </div>
 </div>
 

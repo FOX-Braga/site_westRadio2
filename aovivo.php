@@ -1,6 +1,6 @@
 <?php
 $page_title = "Transmissão Ao Vivo";
-$page_desc = "Assista a transmissão ao vivo da West FM / West News e confira os últimos vídeos do nosso canal.";
+$page_desc = "Assista a transmissão ao vivo da 96 FM / 96 News e confira os últimos vídeos do nosso canal.";
 require_once __DIR__ . '/includes/header.php';
 
 if (!isset($_SESSION['user_nome']) && !isset($_SESSION['guest_name'])) {
@@ -27,7 +27,7 @@ if (!$video_inicial && !empty($videos)) {
 }
 
 $video_inicial_id = $video_inicial ? $video_inicial['youtube_id'] : 'yP5S7V7g3p0';
-$video_inicial_titulo = $video_inicial ? $video_inicial['titulo'] : 'West News / West FM - Transmissão Oficial ao Vivo';
+$video_inicial_titulo = $video_inicial ? $video_inicial['titulo'] : '96 News / 96 FM - Transmissão Oficial ao Vivo';
 $video_inicial_desc = $video_inicial ? $video_inicial['descricao'] : 'Acompanhe nossa programação jornalística e musical direto do estúdio de Campo Grande - MS. Notícias que importam e a rádio que toca os EUA.';
 $video_inicial_tipo = $video_inicial ? $video_inicial['tipo'] : 'live';
 ?>
@@ -371,7 +371,7 @@ $video_inicial_tipo = $video_inicial ? $video_inicial['tipo'] : 'live';
                 <div class="chat-messages" id="chat-messages-box">
                     <div class="chat-msg"><span class="chat-author">Marcos Souza</span><span class="chat-text">Melhor rádio do MS! Escuto todo dia de Três Lagoas.</span></div>
                     <div class="chat-msg"><span class="chat-author">Sandra Helena</span><span class="chat-text">Abraço de Dourados! Excelente transmissão e sinal 100%.</span></div>
-                    <div class="chat-msg"><span class="chat-author">Gabriel Lima</span><span class="chat-text">O estúdio novo ficou sensacional! Parabéns West News.</span></div>
+                    <div class="chat-msg"><span class="chat-author">Gabriel Lima</span><span class="chat-text">O estúdio novo ficou sensacional! Parabéns 96 News.</span></div>
                     <div class="chat-msg"><span class="chat-author">Aline Duarte</span><span class="chat-text">Que música massa, toca mais rock clássico aí!</span></div>
                 </div>
                 <form class="chat-input-bar" id="chat-form" onsubmit="sendChatMessage(event)">

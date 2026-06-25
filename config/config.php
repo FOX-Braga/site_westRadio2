@@ -49,11 +49,11 @@ define('DB_DRIVER', 'sqlite');
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
-define('DB_NAME', 'west_news');
+define('DB_NAME', '96_news');
 
 // Banco de Dados Produção
 // define('DB_HOST', 'localhost');
-// define('DB_USER', 'por46724_westfm');
+// define('DB_USER', 'por46724_96fm');
 // define('DB_PASS', 'Postgresql2026@');
 // define('DB_NAME', 'por46724_noticias');
 

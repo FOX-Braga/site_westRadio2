@@ -1,4 +1,4 @@
--- Estrutura do Banco de Dados para West News (Versão SQLite)
+-- Estrutura do Banco de Dados para 96 News (Versão SQLite)
 
 CREATE TABLE IF NOT EXISTS `usuarios` (
   `id` INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `curtidas` (
 -- DADOS DE TESTE (DUMMY DATA)
 -- Senha padrão para os usuários de teste é: 'senha123'
 INSERT OR IGNORE INTO `usuarios` (`id`, `nome`, `email`, `senha`, `tipo`, `bio`, `verificado`) VALUES
-(1, 'Administrador', 'admin@westnews.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'Editor-chefe do portal West News.', 1),
+(1, 'Administrador', 'admin@96news.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'Editor-chefe do portal 96 News.', 1),
 (2, 'João Leitor', 'joao@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'Leitor assíduo de notícias de tecnologia.', 1),
 (3, 'Admin Extra', 'admin@admin', '$2y$10$SqCK78N.6y.ZVeTxUeVjy.zE4Ef0vFfeFqPMhIe2hUIDNAZX28tT2', 'admin', 'Administrador adicional de teste.', 1);
 
@@ -123,15 +123,15 @@ CREATE TABLE IF NOT EXISTS `aovivo_pings` (
 );
 
 INSERT OR IGNORE INTO `videos` (`id`, `titulo`, `descricao`, `youtube_id`, `tipo`, `duracao`) VALUES
-(1, 'West News / West FM - Transmissão Oficial ao Vivo', 'Acompanhe nossa programação jornalística e musical direto do estúdio de Campo Grande - MS. Notícias que importam e a rádio que toca os EUA.', 'yP5S7V7g3p0', 'live', 'AO VIVO'),
-(2, 'Bastidores West FM - Melhores Momentos do Estúdio', 'Veja o que acontece por trás das câmeras durante os programas da manhã da West FM com nossos apresentadores.', 'XqgG17dYqC8', 'video', '12:45'),
+(1, '96 News / 96 FM - Transmissão Oficial ao Vivo', 'Acompanhe nossa programação jornalística e musical direto do estúdio de Campo Grande - MS. Notícias que importam e a rádio que toca os EUA.', 'yP5S7V7g3p0', 'live', 'AO VIVO'),
+(2, 'Bastidores 96 FM - Melhores Momentos do Estúdio', 'Veja o que acontece por trás das câmeras durante os programas da manhã da 96 FM com nossos apresentadores.', 'XqgG17dYqC8', 'video', '12:45'),
 (3, 'Entrevista Especial: Projetos de Ecoturismo no Pantanal', 'Nossa equipe conversa com especialistas sobre a preservação e o turismo sustentável nas planícies do MS.', '5F7y80fWfVw', 'video', '18:20'),
 (4, 'Polo Tecnológico do MS: Investimentos e Impacto Local', 'Entenda como o novo polo tecnológico inaugurado em Campo Grande vai impulsionar a economia e startups do estado.', 'J7hXq26HicE', 'video', '08:15');
 
 INSERT OR IGNORE INTO `chat_mensagens` (`id`, `usuario_id`, `nome_usuario`, `mensagem`) VALUES
 (1, 2, 'João Leitor', 'Melhor rádio do MS! Escuto todo dia de Três Lagoas.'),
 (2, 3, 'Admin Extra', 'Abraço de Dourados! Excelente transmissão e sinal 100%.'),
-(3, 1, 'Administrador', 'O estúdio novo ficou sensacional! Parabéns West News.'),
+(3, 1, 'Administrador', 'O estúdio novo ficou sensacional! Parabéns 96 News.'),
 (4, 2, 'João Leitor', 'Que música massa, toca mais rock clássico aí!'),
 (5, 3, 'Admin Extra', 'Parabéns pela qualidade da imagem!'),
 (6, 1, 'Administrador', 'Excelente matéria de Campo Grande.');
