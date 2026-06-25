@@ -1,13 +1,17 @@
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
     // Menu Mobile
     const mobileBtn = document.querySelector('.mobile-menu-btn');
     const navLinks = document.querySelector('.nav-links');
 
     if (mobileBtn && navLinks) {
-        mobileBtn.addEventListener('click', () => {
+        // Remover listener anterior caso exista (para evitar duplo clique com Turbo)
+        const newMobileBtn = mobileBtn.cloneNode(true);
+        mobileBtn.parentNode.replaceChild(newMobileBtn, mobileBtn);
+        
+        newMobileBtn.addEventListener('click', () => {
             navLinks.classList.toggle('active');
             const isExpanded = navLinks.classList.contains('active');
-            mobileBtn.setAttribute('aria-expanded', isExpanded);
+            newMobileBtn.setAttribute('aria-expanded', isExpanded);
         });
     }
 
@@ -25,7 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', () => {
+        const newThemeToggleBtn = themeToggleBtn.cloneNode(true);
+        themeToggleBtn.parentNode.replaceChild(newThemeToggleBtn, themeToggleBtn);
+        
+        newThemeToggleBtn.addEventListener('click', () => {
             let theme = document.documentElement.getAttribute('data-theme');
             let newTheme = theme === 'dark' ? 'light' : 'dark';
             
@@ -36,11 +43,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateThemeIcon(theme) {
-        if (!themeToggleBtn) return;
+        const btn = document.querySelector('.theme-toggle');
+        if (!btn) return;
         if (theme === 'dark') {
-            themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+            btn.innerHTML = '<i class="fas fa-sun"></i>';
         } else {
-            themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
+            btn.innerHTML = '<i class="fas fa-moon"></i>';
         }
     }
 
@@ -57,7 +65,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 800);
         }
 
-        acceptCookiesBtn.addEventListener('click', () => {
+        const newAcceptBtn = acceptCookiesBtn.cloneNode(true);
+        acceptCookiesBtn.parentNode.replaceChild(newAcceptBtn, acceptCookiesBtn);
+
+        newAcceptBtn.addEventListener('click', () => {
             // Salva a aceitação no navegador por tempo indeterminado
             localStorage.setItem('cookies_accepted', 'true');
             // Esconde o banner
@@ -72,21 +83,50 @@ document.addEventListener('DOMContentLoaded', () => {
     const radioPlayer = document.getElementById('antena1-player');
     const radioPlayBtn = document.getElementById('antena1-play-btn');
     if (radioPlayer && radioPlayBtn) {
-        radioPlayBtn.addEventListener('click', () => {
-            const icon = radioPlayBtn.querySelector('i');
+        const icon = radioPlayBtn.querySelector('i');
+        
+        // Apenas restaura na primeira vez ou num refresh real
+        if (radioPlayer.paused && localStorage.getItem('radio_is_playing') === 'true') {
+            const playPromise = radioPlayer.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    icon.className = 'fas fa-pause';
+                    icon.style.marginLeft = '0';
+                }).catch(error => {
+                    console.log('Autoplay prevented by browser');
+                    localStorage.setItem('radio_is_playing', 'false');
+                });
+            }
+        } else if (!radioPlayer.paused) {
+            // Se já estava tocando (vindo do Turbo cache), atualizar ícone
+            icon.className = 'fas fa-pause';
+            icon.style.marginLeft = '0';
+        }
+
+        const newRadioPlayBtn = radioPlayBtn.cloneNode(true);
+        radioPlayBtn.parentNode.replaceChild(newRadioPlayBtn, radioPlayBtn);
+        const newIcon = newRadioPlayBtn.querySelector('i');
+
+        newRadioPlayBtn.addEventListener('click', () => {
             if (radioPlayer.paused) {
                 radioPlayer.play();
-                icon.className = 'fas fa-pause';
-                icon.style.marginLeft = '0';
+                newIcon.className = 'fas fa-pause';
+                newIcon.style.marginLeft = '0';
+                localStorage.setItem('radio_is_playing', 'true');
             } else {
                 radioPlayer.pause();
-                icon.className = 'fas fa-play';
-                icon.style.marginLeft = '1px';
+                newIcon.className = 'fas fa-play';
+                newIcon.style.marginLeft = '1px';
+                localStorage.setItem('radio_is_playing', 'false');
             }
         });
+        
+        // Sync time if needed (though it's a live stream so it doesn't matter much)
     }
-});
+}
 
+document.addEventListener('DOMContentLoaded', initApp);
+document.addEventListener('turbo:load', initApp);
 
 // Expor função de fechar globalmente para o onclick no HTML
 window.closeBanner = function(bannerId) {

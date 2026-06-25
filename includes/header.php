@@ -61,7 +61,7 @@ if (isset($pdo)) {
     <meta property="og:description" content="<?= isset($page_desc) ? escape($page_desc) : SITE_DESC ?>">
     <meta property="og:type" content="website">
     
-    <link rel="icon" href="<?= BASE_URL ?>/assets/images/westnews_logo.png" type="image/png">
+    <link rel="icon" href="<?= BASE_URL ?>/assets/logo-96news.png" type="image/png">
     
     <!-- FontAwesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -71,6 +71,7 @@ if (isset($pdo)) {
     
     <!-- CSS Principal -->
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css?v=<?= filemtime(__DIR__ . '/../assets/css/style.css') ?>">
+    <script type="module" src="https://cdn.skypack.dev/@hotwired/turbo"></script>
 </head>
 <body>
 
@@ -80,7 +81,19 @@ if (isset($pdo)) {
         <div class="container">
             <div class="header-top-left">
                 <span><i class="far fa-calendar-alt"></i> <?= date('d \d\e M, Y') ?></span>
-                <span style="border-left: 1px solid var(--color-border); padding-left: 15px;"><i class="fas fa-cloud-sun"></i> 26°C Campo Grande</span>
+                <span id="temp-display" style="border-left: 1px solid var(--color-border); padding-left: 15px;"><i class="fas fa-cloud-sun"></i> --°C Campo Grande</span>
+                <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    fetch('https://api.open-meteo.com/v1/forecast?latitude=-20.4428&longitude=-54.6464&current_weather=true')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data && data.current_weather && data.current_weather.temperature !== undefined) {
+                                document.getElementById('temp-display').innerHTML = '<i class="fas fa-cloud-sun"></i> ' + Math.round(data.current_weather.temperature) + '°C Campo Grande';
+                            }
+                        })
+                        .catch(err => console.error(err));
+                });
+                </script>
             </div>
             <div class="header-top-right">
                 <div class="header-social">
@@ -120,9 +133,7 @@ if (isset($pdo)) {
             </div>
 
             <!-- Botão da Rádio alinhado à direita -->
-            <div style="display: flex; gap: 15px;">
-                <a href="<?= BASE_URL ?>/radio.php" style="background-color: #ffffff; color: #cc0000; border: 2px solid #cc0000; border-radius: 50px; font-weight: bold; padding: 10px 20px; display: flex; align-items: center; gap: 8px; text-decoration: none; transition: all 0.3s;" onmouseover="this.style.backgroundColor='#cc0000'; this.style.color='#ffffff';" onmouseout="this.style.backgroundColor='#ffffff'; this.style.color='#cc0000';"><i class="fas fa-broadcast-tower"></i> Ouça ao Vivo</a>
-            </div>
+            <div></div>
         </div>
     </div>
     

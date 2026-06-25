@@ -66,7 +66,7 @@
 </footer>
 
 <!-- Floating Radio Player -->
-<div id="floating-radio" style="position: fixed; bottom: 30px; right: 30px; background: var(--color-surface); padding: 15px 20px; border-radius: 50px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 15px; z-index: 9999; border: 2px solid var(--color-primary); transition: transform 0.3s ease;">
+<div id="floating-radio" data-turbo-permanent="true" style="position: fixed; bottom: 30px; right: 30px; background: var(--color-surface); padding: 15px 20px; border-radius: 50px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 15px; z-index: 9999; border: 2px solid var(--color-primary); transition: transform 0.3s ease;">
     <div style="background: rgba(204, 0, 0, 0.1); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
         <i class="fas fa-broadcast-tower" style="color: #cc0000; font-size: 1.2rem; animation: blink-live 1.5s infinite;"></i>
     </div>
