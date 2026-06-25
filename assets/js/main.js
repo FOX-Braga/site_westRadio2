@@ -80,48 +80,65 @@ function initApp() {
     // os banners voltarão a aparecer sempre que a página for recarregada.
 
     // Radio Player Logic
-    const radioPlayer = document.getElementById('antena1-player');
-    const radioPlayBtn = document.getElementById('antena1-play-btn');
-    if (radioPlayer && radioPlayBtn) {
-        const icon = radioPlayBtn.querySelector('i');
+    if (!window.globalRadioPlayer) {
+        window.globalRadioPlayer = new Audio('https://server27.srvsh.com.br:6900/stream//');
+        window.globalRadioPlayer.preload = 'none';
         
-        // Apenas restaura na primeira vez ou num refresh real
-        if (radioPlayer.paused && localStorage.getItem('radio_is_playing') === 'true') {
-            const playPromise = radioPlayer.play();
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    icon.className = 'fas fa-pause';
-                    icon.style.marginLeft = '0';
-                }).catch(error => {
-                    console.log('Autoplay prevented by browser');
-                    localStorage.setItem('radio_is_playing', 'false');
-                });
+        window.globalRadioPlayer.addEventListener('play', () => {
+            localStorage.setItem('radio_is_playing', 'true');
+            const btnIcon = document.querySelector('#antena1-play-btn i');
+            if (btnIcon) {
+                btnIcon.className = 'fas fa-pause';
+                btnIcon.style.marginLeft = '0';
             }
-        } else if (!radioPlayer.paused) {
-            // Se já estava tocando (vindo do Turbo cache), atualizar ícone
-            icon.className = 'fas fa-pause';
-            icon.style.marginLeft = '0';
-        }
+        });
+        
+        window.globalRadioPlayer.addEventListener('pause', () => {
+            localStorage.setItem('radio_is_playing', 'false');
+            const btnIcon = document.querySelector('#antena1-play-btn i');
+            if (btnIcon) {
+                btnIcon.className = 'fas fa-play';
+                btnIcon.style.marginLeft = '3px'; // offset for play icon centering
+            }
+        });
+    }
 
+    const radioPlayer = window.globalRadioPlayer;
+    const radioPlayBtn = document.getElementById('antena1-play-btn');
+
+    if (radioPlayBtn) {
+        // Clone to remove previous event listeners attached by turbo:load to avoid duplicate clicks
         const newRadioPlayBtn = radioPlayBtn.cloneNode(true);
         radioPlayBtn.parentNode.replaceChild(newRadioPlayBtn, radioPlayBtn);
         const newIcon = newRadioPlayBtn.querySelector('i');
 
+        // Sincroniza o ícone imediatamente com o estado atual do player
+        if (!radioPlayer.paused) {
+            newIcon.className = 'fas fa-pause';
+            newIcon.style.marginLeft = '0';
+        } else {
+            newIcon.className = 'fas fa-play';
+            newIcon.style.marginLeft = '3px';
+        }
+
+        // Tenta retomar se for a primeira carga e estava tocando na sessão anterior
+        if (radioPlayer.paused && localStorage.getItem('radio_is_playing') === 'true') {
+            const playPromise = radioPlayer.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log('Autoplay prevented by browser');
+                    localStorage.setItem('radio_is_playing', 'false');
+                });
+            }
+        }
+
         newRadioPlayBtn.addEventListener('click', () => {
             if (radioPlayer.paused) {
                 radioPlayer.play();
-                newIcon.className = 'fas fa-pause';
-                newIcon.style.marginLeft = '0';
-                localStorage.setItem('radio_is_playing', 'true');
             } else {
                 radioPlayer.pause();
-                newIcon.className = 'fas fa-play';
-                newIcon.style.marginLeft = '1px';
-                localStorage.setItem('radio_is_playing', 'false');
             }
         });
-        
-        // Sync time if needed (though it's a live stream so it doesn't matter much)
     }
 }
 

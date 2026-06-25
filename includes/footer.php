@@ -67,14 +67,13 @@
 
 <!-- Floating Radio Player -->
 <div id="floating-radio" data-turbo-permanent="true" style="position: fixed; bottom: 30px; right: 30px; background: var(--color-surface); padding: 15px 20px; border-radius: 50px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 15px; z-index: 9999; border: 2px solid var(--color-primary); transition: transform 0.3s ease;">
-    <div style="background: rgba(204, 0, 0, 0.1); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-        <i class="fas fa-broadcast-tower" style="color: #cc0000; font-size: 1.2rem; animation: blink-live 1.5s infinite;"></i>
+    <div style="width: 55px; height: 55px; display: flex; align-items: center; justify-content: center; border-radius: 50%; overflow: hidden; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+        <img src="<?= BASE_URL ?>/assets/logo-antena1.jpg" alt="Antena 1" style="width: 100%; height: 100%; object-fit: cover;">
     </div>
     <div style="display: flex; flex-direction: column;">
         <strong style="font-size: 0.95rem; color: var(--color-text);">Antena 1</strong>
         <span style="font-size: 0.75rem; color: var(--color-text-muted);">Campo Grande</span>
     </div>
-    <audio id="antena1-player" src="https://server27.srvsh.com.br:6900/stream//" preload="none"></audio>
     <button id="antena1-play-btn" style="background: var(--color-primary); color: white; border: none; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(204, 0, 0, 0.3); transition: transform 0.2s, background 0.3s;" aria-label="Play/Pause">
         <i class="fas fa-play" style="margin-left: 3px;"></i>
     </button>

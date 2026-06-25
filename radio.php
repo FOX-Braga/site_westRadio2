@@ -144,16 +144,14 @@ require_once __DIR__ . '/includes/header.php';
         </div>
         
         <div class="radio-player-body">
-            <div class="radio-icon-large">
-                <i class="fas fa-broadcast-tower"></i>
+            <div class="radio-icon-large" style="background: transparent; box-shadow: 0 4px 15px rgba(0,0,0,0.15); animation: none; overflow: hidden; border-radius: 50%; padding: 0;">
+                <img src="<?= BASE_URL ?>/assets/logo-antena1.jpg" alt="Antena 1" style="width: 100%; height: 100%; object-fit: cover;">
             </div>
             
             <div class="radio-status">
                 <span class="status-indicator" id="page-status-dot"></span>
                 <span id="page-status-text">Pronto para tocar</span>
             </div>
-            
-            <audio id="page-radio-player" src="https://server27.srvsh.com.br:6900/stream//" preload="none"></audio>
             
             <div class="radio-controls">
                 <button class="btn-play-large" id="page-play-btn">
@@ -171,24 +169,43 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const player = document.getElementById('page-radio-player');
+(function() {
+    if (!window.globalRadioPlayer) {
+        window.globalRadioPlayer = new Audio('https://server27.srvsh.com.br:6900/stream//');
+        window.globalRadioPlayer.preload = 'none';
+        window.globalRadioPlayer.addEventListener('play', () => localStorage.setItem('radio_is_playing', 'true'));
+        window.globalRadioPlayer.addEventListener('pause', () => localStorage.setItem('radio_is_playing', 'false'));
+    }
+    const player = window.globalRadioPlayer;
     const playBtn = document.getElementById('page-play-btn');
+    if (!playBtn) return;
+    
     const playIcon = playBtn.querySelector('i');
     const volumeSlider = document.getElementById('page-volume-slider');
     const statusText = document.getElementById('page-status-text');
     const statusDot = document.getElementById('page-status-dot');
     
-    // Sincroniza e impede o player flutuante de tocar ao mesmo tempo
-    const floatingPlayer = document.getElementById('antena1-player');
-    const floatingBtn = document.getElementById('antena1-play-btn');
-    
-    if (floatingPlayer && !floatingPlayer.paused) {
-        floatingPlayer.pause();
-        if (floatingBtn) {
-            floatingBtn.innerHTML = '<i class="fas fa-play" style="margin-left: 3px;"></i>';
-        }
+    // Sync UI if already playing
+    if (!player.paused) {
+        playIcon.className = 'fas fa-stop';
+        playIcon.style.marginLeft = '0';
+        statusText.textContent = "No Ar - Transmissão Ao Vivo";
+        statusDot.classList.add('live');
+        statusDot.style.background = "";
     }
+    
+    const syncFloatingBtn = () => {
+        const floatingIcon = document.querySelector('#antena1-play-btn i');
+        if (floatingIcon) {
+            if (!player.paused) {
+                floatingIcon.className = 'fas fa-pause';
+                floatingIcon.style.marginLeft = '0';
+            } else {
+                floatingIcon.className = 'fas fa-play';
+                floatingIcon.style.marginLeft = '1px';
+            }
+        }
+    };
 
     function togglePlay() {
         if (player.paused) {
@@ -201,6 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 statusText.textContent = "No Ar - Transmissão Ao Vivo";
                 statusDot.classList.add('live');
                 statusDot.style.background = ""; // limpa para pegar a classe live
+                syncFloatingBtn();
             }).catch(e => {
                 statusText.textContent = "Erro ao conectar";
                 statusDot.style.background = "#ef4444"; // red
@@ -208,23 +226,24 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         } else {
             player.pause();
-            player.src = player.src; // Reseta stream
             playIcon.className = 'fas fa-play';
             playIcon.style.marginLeft = '5px';
             statusText.textContent = "Pronto para tocar";
             statusDot.classList.remove('live');
             statusDot.style.background = "var(--color-primary)"; // default blue
+            syncFloatingBtn();
         }
     }
 
     playBtn.addEventListener('click', togglePlay);
 
-    volumeSlider.addEventListener('input', function(e) {
-        player.volume = e.target.value;
-    });
-    
-    player.volume = volumeSlider.value;
-});
+    if (volumeSlider) {
+        volumeSlider.addEventListener('input', function(e) {
+            player.volume = e.target.value;
+        });
+        player.volume = volumeSlider.value;
+    }
+})();
 </script>
 
 <?php
