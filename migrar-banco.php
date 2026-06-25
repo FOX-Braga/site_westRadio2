@@ -70,26 +70,59 @@ try {
     )");
     echo "✔️ Tabela <b>banners</b> verificada.<br>";
 
-    // Verificar e adicionar colunas faltantes em 'noticias'
-    $colunasNoticiasEsperadas = [
-        'subtitulo' => 'TEXT',
-        'status' => "TEXT DEFAULT 'publicado'",
-        'destaque' => 'INTEGER DEFAULT 0',
-        'urgente' => 'INTEGER DEFAULT 0',
-        'data_agendamento' => 'DATETIME',
-        'views' => 'INTEGER DEFAULT 0'
+    // Verificar e adicionar colunas faltantes em todas as tabelas
+    $esquema = [
+        'usuarios' => [
+            'nome' => "TEXT NOT NULL DEFAULT ''",
+            'email' => "TEXT NOT NULL DEFAULT ''",
+            'senha' => "TEXT NOT NULL DEFAULT ''",
+            'tipo' => "TEXT DEFAULT 'usuario'",
+            'foto_perfil' => 'TEXT',
+            'created_at' => 'DATETIME DEFAULT CURRENT_TIMESTAMP'
+        ],
+        'categorias' => [
+            'nome' => "TEXT NOT NULL DEFAULT ''",
+            'slug' => "TEXT NOT NULL DEFAULT ''",
+            'created_at' => 'DATETIME DEFAULT CURRENT_TIMESTAMP'
+        ],
+        'noticias' => [
+            'titulo' => "TEXT NOT NULL DEFAULT ''",
+            'subtitulo' => 'TEXT',
+            'slug' => "TEXT NOT NULL DEFAULT ''",
+            'conteudo' => "TEXT NOT NULL DEFAULT ''",
+            'imagem_destacada' => 'TEXT',
+            'autor_id' => 'INTEGER NOT NULL DEFAULT 0',
+            'categoria_id' => 'INTEGER NOT NULL DEFAULT 0',
+            'status' => "TEXT DEFAULT 'publicado'",
+            'destaque' => 'INTEGER DEFAULT 0',
+            'urgente' => 'INTEGER DEFAULT 0',
+            'data_agendamento' => 'DATETIME',
+            'views' => 'INTEGER DEFAULT 0',
+            'created_at' => 'DATETIME DEFAULT CURRENT_TIMESTAMP',
+            'updated_at' => 'DATETIME DEFAULT CURRENT_TIMESTAMP'
+        ],
+        'banners' => [
+            'titulo' => "TEXT NOT NULL DEFAULT ''",
+            'imagem' => "TEXT NOT NULL DEFAULT ''",
+            'link' => 'TEXT',
+            'posicao' => "TEXT DEFAULT 'topo'",
+            'ativo' => 'INTEGER DEFAULT 1',
+            'created_at' => 'DATETIME DEFAULT CURRENT_TIMESTAMP'
+        ]
     ];
 
-    $q = $pdo->query("PRAGMA table_info(noticias)");
-    $colunasAtuais = [];
-    foreach($q->fetchAll(PDO::FETCH_ASSOC) as $col) {
-        $colunasAtuais[] = $col['name'];
-    }
+    foreach ($esquema as $tabela => $colunas) {
+        $q = $pdo->query("PRAGMA table_info($tabela)");
+        $colunasAtuais = [];
+        foreach($q->fetchAll(PDO::FETCH_ASSOC) as $col) {
+            $colunasAtuais[] = $col['name'];
+        }
 
-    foreach($colunasNoticiasEsperadas as $coluna => $tipo) {
-        if (!in_array($coluna, $colunasAtuais)) {
-            $pdo->exec("ALTER TABLE noticias ADD COLUMN $coluna $tipo");
-            echo "➕ Coluna <b>$coluna</b> adicionada à tabela 'noticias'.<br>";
+        foreach($colunas as $coluna => $tipo) {
+            if (!in_array($coluna, $colunasAtuais)) {
+                $pdo->exec("ALTER TABLE $tabela ADD COLUMN $coluna $tipo");
+                echo "➕ Coluna <b>$coluna</b> adicionada à tabela '$tabela'.<br>";
+            }
         }
     }
 
