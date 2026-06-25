@@ -1,6 +1,11 @@
 <?php
 $page_title = isset($_GET['id']) ? "Editar Notícia" : "Nova Notícia";
-require_once __DIR__ . '/includes/header.php';
+
+// Incluir conexões básicas antes do HTML para poder fazer redirects
+require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../../includes/auth.php';
+requirePanelAccess();
 
 $pdo = Database::getInstance();
 
@@ -30,6 +35,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $urgente = isset($_POST['urgente']) ? 1 : 0;
     $slug = createSlug($titulo);
     
+    // Garantir que o slug seja único
+    $stmtSlug = $pdo->prepare("SELECT COUNT(*) FROM noticias WHERE slug = ? AND id != ?");
+    $stmtSlug->execute([$slug, $id ?? 0]);
+    if ($stmtSlug->fetchColumn() > 0) {
+        $slug = $slug . '-' . time();
+    }
+
     $imagem_destacada = $noticia['imagem_destacada'] ?? null;
 
     if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] === UPLOAD_ERR_OK) {
@@ -56,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($erro)) {
-        // Se a notícia atual for marcada como destaque, remove o destaque de todas as outras (Regra de Negócio: Apenas 1 destaque global)
+        // Se a notícia atual for marcada como destaque, remove o destaque de todas as outras
         if ($destaque == 1) {
             $pdo->query("UPDATE noticias SET destaque = 0");
         }
@@ -64,16 +76,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $autor_id_post = (isAdmin() && isset($_POST['autor_id'])) ? $_POST['autor_id'] : $_SESSION['user_id'];
 
         if ($id) {
-            $stmt = $pdo->prepare("UPDATE noticias SET titulo=?, subtitulo=?, slug=?, conteudo=?, imagem_destacada=?, autor_id=?, categoria_id=?, status=?, destaque=?, urgente=?, data_agendamento=? WHERE id=?");
-            $stmt->execute([$titulo, $subtitulo, $slug, $conteudo, $imagem_destacada, $autor_id_post, $categoria_id, $status, $destaque, $urgente, $data_agendamento, $id]);
+            try {
+                $stmt = $pdo->prepare("UPDATE noticias SET titulo=?, subtitulo=?, slug=?, conteudo=?, imagem_destacada=?, autor_id=?, categoria_id=?, status=?, destaque=?, urgente=?, data_agendamento=? WHERE id=?");
+                $stmt->execute([$titulo, $subtitulo, $slug, $conteudo, $imagem_destacada, $autor_id_post, $categoria_id, $status, $destaque, $urgente, $data_agendamento, $id]);
+                header("Location: noticias.php");
+                exit;
+            } catch (PDOException $e) {
+                $erro = "Erro ao atualizar no banco: " . $e->getMessage();
+            }
         } else {
-            $stmt = $pdo->prepare("INSERT INTO noticias (titulo, subtitulo, slug, conteudo, imagem_destacada, autor_id, categoria_id, status, destaque, urgente, data_agendamento) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$titulo, $subtitulo, $slug, $conteudo, $imagem_destacada, $autor_id_post, $categoria_id, $status, $destaque, $urgente, $data_agendamento]);
+            try {
+                $stmt = $pdo->prepare("INSERT INTO noticias (titulo, subtitulo, slug, conteudo, imagem_destacada, autor_id, categoria_id, status, destaque, urgente, data_agendamento) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$titulo, $subtitulo, $slug, $conteudo, $imagem_destacada, $autor_id_post, $categoria_id, $status, $destaque, $urgente, $data_agendamento]);
+                header("Location: noticias.php");
+                exit;
+            } catch (PDOException $e) {
+                $erro = "Erro ao inserir no banco: " . $e->getMessage();
+            }
         }
-        header("Location: noticias.php");
-        exit;
     }
 }
+
+// Agora que todo o processamento e redirects (se houver) já foram feitos, incluímos o HTML visual:
+require_once __DIR__ . '/includes/header.php';
 
 $categorias = $pdo->query("SELECT * FROM categorias ORDER BY nome ASC")->fetchAll();
 
