@@ -1,0 +1,60 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Evita listagem de diretórios
+    Options -Indexes
+
+    # Forçar HTTPS (HostGator AutoSSL)
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Redireciona tudo que não for arquivo ou diretório válido
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Regras de roteamento para URLs amigáveis
+    RewriteRule ^noticia/([a-zA-Z0-9_-]+)/?$ noticia.php?slug=$1 [L,QSA]
+    RewriteRule ^categoria/([a-zA-Z0-9_-]+)/?$ categoria.php?slug=$1 [L,QSA]
+    RewriteRule ^busca/?$ busca.php [L,QSA]
+
+    # Páginas simples
+    RewriteRule ^ao-vivo/?$ aovivo.php [L]
+    RewriteRule ^sobre/?$ sobre.php [L]
+    RewriteRule ^contato/?$ contato.php [L]
+    RewriteRule ^login/?$ login.php [L]
+    RewriteRule ^cadastro/?$ cadastro.php [L]
+    RewriteRule ^perfil/?$ perfil.php [L]
+
+    # Fallback de contingência
+    FallbackResource index.php
+</IfModule>
+
+# Otimização de Performance: Compressão GZIP / Brotli
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css application/xml application/xhtml+xml application/rss+xml application/javascript application/x-javascript image/svg+xml
+</IfModule>
+
+# Otimização de Performance: Cache de Navegador (Browser Caching)
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+</IfModule>
+
+# Proteção de Arquivos Sensíveis
+<FilesMatch "\.(sql|ini|env|md|log|sqlite)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Bloquear acesso aos diretórios internos
+<DirectoryMatch "^.*/(config|includes)/">
+    Order Deny,Allow
+    Deny from All
+</DirectoryMatch>

@@ -1,0 +1,17 @@
+# Evitar listagem de diretórios
+Options -Indexes
+
+# Bloquear a execução de scripts em pastas de upload (Proteção Máxima Apache/LiteSpeed)
+<FilesMatch "\.(php|php4|php5|php7|php8|phtml|pl|py|jsp|asp|htm|html|shtml|sh|cgi)$">
+    SetHandler default-handler
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Remove qualquer Handler perigoso ativado acidentalmente
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .cgi .py .pl
+
+# Forçar cabeçalhos de segurança para anexos
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+</IfModule>

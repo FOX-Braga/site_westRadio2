@@ -1,0 +1,307 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    /* Cores Corporativas Jornais Digitais */
+    --color-primary: #13193a; /* Azul Escuro da logo 96 */
+    --color-primary-light: #1d2657;
+    --color-accent: #CC0000; /* Vermelho Discreto Destaque */
+    --color-text: #222222; /* Cinza Quase Preto para Leitura */
+    --color-text-muted: #666666; /* Cinza Secundário */
+    --color-bg: #FFFFFF; /* Fundo principal Branco */
+    --color-surface: #F8F9FA; /* Fundo Secundário (Cinza Super Claro) */
+    --color-border: #E5E5E5; /* Borda Discreta */
+    --color-footer-bg: #111111;
+    --color-footer-text: #CCCCCC;
+    
+    /* Tipografia */
+    --font-title: 'Merriweather', serif;
+    --font-family: 'Inter', sans-serif;
+    
+    /* Sombras e Transições */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+    --transition: all 0.2s ease-in-out;
+}
+
+[data-theme="dark"] {
+    --color-bg: #121212;
+    --color-surface: #1E1E1E;
+    --color-text: #E0E0E0;
+    --color-text-muted: #A0A0A0;
+    --color-border: #333333;
+    --color-primary: #4F8BFF;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+a { text-decoration: none; color: inherit; transition: var(--transition); }
+img { max-width: 100%; height: auto; display: block; object-fit: cover; }
+
+.container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+/* Tipografia Geral */
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-title); font-weight: 700; color: var(--color-text); }
+
+/* ==================== HEADER PROFISSIONAL ==================== */
+.site-header { background-color: var(--color-bg); border-bottom: 2px solid var(--color-primary); }
+
+.header-top {
+    background-color: var(--color-surface); border-bottom: 1px solid var(--color-border);
+    padding: 6px 0; font-size: 0.75rem; color: var(--color-text-muted); font-weight: 500;
+}
+.header-top .container { display: flex; justify-content: space-between; align-items: center; }
+.header-top-left { display: flex; gap: 15px; align-items: center; }
+.header-top-right { display: flex; gap: 15px; align-items: center; }
+.header-top a:hover { color: var(--color-primary); }
+.header-social { display: flex; gap: 10px; font-size: 0.85rem; }
+
+.header-main { padding: 5px 0; text-align: center; position: relative; }
+.header-main .logo img { 
+    height: 120px; 
+    width: auto; 
+    margin: 0 auto; 
+    mix-blend-mode: multiply; /* Truque CSS para remover o fundo branco da imagem */
+    object-fit: contain;
+    transform: scale(1.6); /* Aumenta a logo ignorando o espaço em branco ao redor dela */
+}
+
+.header-nav { border-top: none; border-bottom: none; position: sticky; top: 0; background: var(--color-primary); z-index: 100; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+.nav-links { 
+    list-style: none; display: flex; justify-content: center; 
+    flex-wrap: nowrap !important; white-space: nowrap; 
+}
+.nav-links li a {
+    display: block; padding: 14px 12px; font-size: 0.95rem; font-weight: 700; text-transform: uppercase;
+    color: #ffffff; position: relative; letter-spacing: 0.5px; transition: color 0.2s ease; white-space: nowrap;
+}
+.nav-links li a:hover { color: #bae6fd; }
+.nav-links li a::after {
+    content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px;
+    background-color: var(--color-accent); transform: scaleX(0); transition: transform 0.2s ease;
+}
+.nav-links li a:hover::after { transform: scaleX(1); }
+
+/* Dropdown Sanfona (Mais) */
+.nav-dropdown { position: relative; }
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: var(--color-primary);
+    min-width: 200px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    z-index: 1000;
+    list-style: none;
+    border-radius: 0 0 4px 4px;
+}
+.nav-dropdown:hover .dropdown-menu {
+    display: block;
+}
+.dropdown-menu li a {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    display: block;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.dropdown-menu li:last-child a { border-bottom: none; }
+.dropdown-menu li a:hover { background-color: var(--color-primary-light); }
+.dropdown-menu li a::after { display: none; }
+
+/* Mobile Menu */
+.mobile-menu-btn { display: none; font-size: 1.5rem; background: none; border: none; cursor: pointer; color: var(--color-text); position: absolute; left: 20px; top: 50%; transform: translateY(-50%); }
+
+/* ==================== HOME LAYOUTS ==================== */
+.section-title {
+    font-family: var(--font-title); font-size: 1.6rem; font-weight: 800;
+    margin-bottom: 25px; display: inline-block; padding-bottom: 5px;
+    border-bottom: 3px solid var(--color-primary); color: var(--color-primary);
+}
+
+/* Destaque Principal (Hero) */
+.hero-section { padding: 40px 0; border-bottom: 1px solid var(--color-border); margin-bottom: 40px; }
+.hero-grid { display: grid; grid-template-columns: 60% 36%; gap: 4%; }
+.hero-main .hero-tag { font-family: var(--font-family); font-size: 0.8rem; text-transform: uppercase; font-weight: 800; color: var(--color-accent); margin-bottom: 10px; display: block; }
+.hero-main h1 { font-size: 2.8rem; line-height: 1.2; margin-bottom: 15px; letter-spacing: -0.5px; }
+.hero-main h1 a:hover { color: var(--color-primary); }
+.hero-main p { font-size: 1.1rem; color: var(--color-text-muted); margin-bottom: 15px; }
+.hero-meta { font-size: 0.8rem; color: var(--color-text-muted); display: flex; gap: 15px; align-items: center; }
+.hero-img { width: 100%; height: 400px; border-radius: 4px; margin-bottom: 20px; }
+
+.hero-side { display: flex; flex-direction: column; gap: 20px; border-left: 1px solid var(--color-border); padding-left: 20px; }
+.side-news { border-bottom: 1px solid var(--color-border); padding-bottom: 20px; }
+.side-news:last-child { border-bottom: none; padding-bottom: 0; }
+.side-news-img { width: 100%; height: 160px; border-radius: 4px; margin-bottom: 10px; }
+.side-news h3 { font-size: 1.3rem; line-height: 1.3; margin-bottom: 8px; }
+.side-news h3 a:hover { color: var(--color-primary); }
+
+/* Últimas Notícias Horizontal */
+.ultimas-faixa { background-color: var(--color-surface); padding: 15px 0; border-bottom: 1px solid var(--color-border); margin-bottom: 40px; }
+.ultimas-container { display: flex; overflow-x: auto; gap: 30px; align-items: center; scrollbar-width: none; }
+.ultimas-item { display: flex; align-items: center; gap: 10px; min-width: 280px; }
+.ultimas-time { font-weight: 700; color: var(--color-accent); font-size: 0.85rem; }
+.ultimas-title { font-family: var(--font-family); font-size: 0.9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Grid Padrão 4 Colunas (Mundo, etc) */
+.news-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; margin-bottom: 50px; }
+.news-card-v { display: flex; flex-direction: column; }
+.news-card-v .img-wrapper { overflow: hidden; border-radius: 4px; margin-bottom: 12px; }
+.news-card-v img { width: 100%; aspect-ratio: 16/10; transition: transform 0.3s ease; }
+.news-card-v:hover img { transform: scale(1.05); }
+.news-card-v .tag { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--color-accent); margin-bottom: 5px; }
+.news-card-v h3 { font-size: 1.1rem; line-height: 1.4; margin-bottom: 8px; }
+.news-card-v p { font-family: var(--font-family); font-size: 0.85rem; color: var(--color-text-muted); }
+
+/* Economia com Indicadores */
+.eco-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; border-bottom: 3px solid var(--color-primary); padding-bottom: 5px; }
+.eco-header .section-title { border: none; margin: 0; padding: 0; }
+.eco-indicators { display: flex; gap: 15px; font-family: var(--font-family); font-size: 0.8rem; font-weight: 700; }
+.eco-ind { display: flex; gap: 5px; align-items: center; }
+.ind-up { color: #16a34a; }
+.ind-down { color: #dc2626; }
+
+/* Cultura Grid Rico */
+.cultura-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin-bottom: 50px; }
+.cultura-main { position: relative; border-radius: 4px; overflow: hidden; }
+.cultura-main img { width: 100%; height: 400px; }
+.cultura-main .overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 40px 20px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); color: white; }
+.cultura-main h2 { color: white; font-size: 2rem; margin-bottom: 10px; }
+.cultura-list { display: flex; flex-direction: column; gap: 20px; }
+.cultura-list-item { display: flex; gap: 15px; border-bottom: 1px solid var(--color-border); padding-bottom: 20px; }
+.cultura-list-item img { width: 120px; height: 80px; border-radius: 4px; }
+.cultura-list-item h4 { font-size: 1rem; line-height: 1.3; }
+
+/* Opinião / Colunistas */
+.opiniao-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; margin-bottom: 50px; }
+.opiniao-card { background: var(--color-surface); padding: 20px; border-radius: 4px; text-align: center; border: 1px solid var(--color-border); }
+.opiniao-card img { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 15px; border: 3px solid var(--color-bg); box-shadow: var(--shadow-sm); }
+.opiniao-autor { font-family: var(--font-family); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; color: var(--color-accent); margin-bottom: 5px; }
+.opiniao-title { font-size: 1.1rem; line-height: 1.4; font-style: italic; }
+
+/* Formulários e Elementos */
+.btn {
+    display: inline-block; padding: 10px 20px; background-color: var(--color-primary); color: #fff;
+    font-family: var(--font-family); font-weight: 600; font-size: 0.9rem; text-transform: uppercase; border: none; cursor: pointer; border-radius: 2px;
+}
+.btn:hover { background-color: var(--color-primary-light); }
+.form-control { width: 100%; padding: 12px; border: 1px solid var(--color-border); font-family: var(--font-family); font-size: 0.9rem; background: var(--color-bg); color: var(--color-text); }
+.form-control:focus { outline: none; border-color: var(--color-primary); }
+
+/* Rodapé */
+.site-footer { background-color: var(--color-footer-bg); color: var(--color-footer-text); padding: 60px 0 20px; font-family: var(--font-family); }
+.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+.footer-col h3 { font-family: var(--font-family); font-size: 1rem; text-transform: uppercase; margin-bottom: 20px; color: white; letter-spacing: 1px; }
+.footer-links { list-style: none; }
+.footer-links li { margin-bottom: 12px; font-size: 0.9rem; }
+.footer-links a:hover { color: white; text-decoration: underline; }
+.footer-bottom { text-align: center; padding-top: 20px; border-top: 1px solid #333; font-size: 0.8rem; color: #888; }
+
+/* ==================== BANNERS TOPO (CARROSSEL) ==================== */
+.top-banner-container {
+    transition: var(--transition);
+}
+.top-banner-slide img {
+    transition: transform 0.3s ease;
+}
+.top-banner-slide:hover img {
+    transform: scale(1.02);
+}
+
+/* Responsividade */
+@media (max-width: 992px) {
+    .header-top-left { display: none; } /* Esconde data/clima no mobile/tablet para economizar espaço */
+    .header-top .container { justify-content: center; } /* Centraliza ícones sociais e auth */
+    
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero-side { border-left: none; padding-left: 0; padding-top: 20px; border-top: 1px solid var(--color-border); flex-direction: row; flex-wrap: wrap; gap: 20px; }
+    .side-news { width: calc(50% - 10px); border-bottom: none; }
+    .news-grid-4 { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .cultura-grid { grid-template-columns: 1fr; }
+    .opiniao-grid { grid-template-columns: repeat(2, 1fr); }
+    .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 30px; }
+    
+    .header-main { padding-left: 50px; padding-right: 50px; } /* Espaço para o menu mobile e search (se houver) */
+    .desktop-search { display: none !important; } /* Esconde o search bar no mobile/tablet para não quebrar o layout */
+    
+    .mobile-menu-btn { display: block; z-index: 101; }
+    
+    .header-nav { position: relative; } /* Garante que o absoluto do nav-links seja relativo ao nav */
+    .nav-links { display: none; position: absolute; top: 100%; left: 0; width: 100%; background: var(--color-bg); flex-direction: column; border-bottom: 2px solid var(--color-primary); box-shadow: var(--shadow-sm); z-index: 9999; }
+    .nav-links.active { display: flex !important; }
+    .nav-links li a { border-bottom: 1px solid var(--color-border); color: var(--color-text) !important; padding: 15px 20px; font-size: 1rem; }
+    .nav-links li a:hover { background-color: var(--color-surface); color: var(--color-primary) !important; }
+    .nav-links li a::after { display: none; } /* Remove o underline hover effect no mobile */
+    
+    .hero-main h1 { font-size: 2.2rem; }
+    .hero-img { height: auto; aspect-ratio: 16/9; }
+}
+
+@media (max-width: 768px) {
+    .section-title { font-size: 1.4rem; }
+    .cultura-main img { height: 300px; }
+    .cultura-main h2 { font-size: 1.5rem; }
+    .cultura-list-item { flex-direction: column; }
+    .cultura-list-item img { width: 100%; height: auto; aspect-ratio: 16/9; }
+}
+
+@media (max-width: 600px) {
+    .header-top { display: none; } /* Remove top bar completely on very small screens to save vertical space */
+    
+    .side-news { width: 100%; }
+    .news-grid-4 { grid-template-columns: 1fr; }
+    .opiniao-grid { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr; gap: 20px; }
+    .eco-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+    .eco-indicators { flex-wrap: wrap; }
+    
+    .hero-main h1 { font-size: 1.8rem; }
+    .hero-img { height: auto; aspect-ratio: 4/3; }
+    
+    section { padding: 0 10px; } /* Add slight padding on mobile if needed, container already has 20px but just in case */
+}
+
+/* 1. Banners Laterais (Carrossel Silencioso) */
+.side-banner .carousel-indicators,
+.side-banner .slick-dots,
+.side-banner .swiper-pagination,
+.side-banner .slick-prev,
+.side-banner .slick-next,
+.side-banner .swiper-button-next,
+.side-banner .swiper-button-prev,
+.side-banner .carousel-control-prev,
+.side-banner .carousel-control-next {
+    display: none !important;
+}
+
+/* 6. Componente Linktree Modal/Seção */
+.linktree-modal {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+.linktree-btn {
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: var(--transition);
+}
+.btn-ouca {
+    background-color: var(--color-accent);
+    color: white;
+}
+.btn-trabalhe {
+    background-color: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+}
+
