@@ -6,8 +6,8 @@
             <!-- Coluna 1: Logo e Social -->
             <div class="footer-col">
                 <div class="logo-container" style="display: flex; align-items: center; justify-content: flex-start; margin-bottom: 20px;">
-                    <a href="<?= BASE_URL ?>/" class="logo" style="display: inline-block; background: #fff; border-radius: 8px; padding: 10px;">
-                        <img src="<?= BASE_URL ?>/assets/logo-footer.png" alt="96News Logo" style="height: 90px; width: auto; object-fit: contain; display: block;">
+                    <a href="<?= BASE_URL ?>/" class="logo" style="display: inline-block; background: #fff; border-radius: 8px; padding: 10px; overflow: hidden;">
+                        <img src="<?= BASE_URL ?>/assets/logo-footer.png" alt="96News Logo" style="height: 110px; width: auto; object-fit: contain; display: block; transform: scale(1.4);">
                     </a>
                 </div>
                 <p style="color: rgba(255, 255, 255, 0.7); line-height: 1.6; font-size: 0.9rem; margin-bottom: 25px;">
@@ -69,7 +69,7 @@
 <div id="floating-radio" class="floating-radio" data-turbo-permanent="true">
     <a href="<?= BASE_URL ?>/radio.php" style="display: flex; align-items: center; gap: 15px; text-decoration: none; flex-grow: 1;">
         <div class="floating-radio-logo-container">
-            <img src="<?= BASE_URL ?>/assets/logo-antena1.jpg" alt="Antena 1">
+            <img src="<?= BASE_URL ?>/assets/logo-player.png" alt="Antena 1">
         </div>
         <div class="floating-radio-info">
             <span class="floating-radio-title">Antena 1</span>

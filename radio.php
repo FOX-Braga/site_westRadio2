@@ -181,7 +181,7 @@ require_once __DIR__ . '/includes/header.php';
         
         <div class="radio-player-body">
             <div class="radio-icon-large" style="background: transparent; box-shadow: 0 4px 15px rgba(0,0,0,0.15); animation: none; overflow: hidden; border-radius: 50%; padding: 0;">
-                <img src="<?= BASE_URL ?>/assets/logo-antena1.jpg" alt="Antena 1" style="width: 100%; height: 100%; object-fit: cover;">
+                <img src="<?= BASE_URL ?>/assets/logo-player.png" alt="Antena 1" style="width: 100%; height: 100%; object-fit: contain; transform: scale(1.5);">
             </div>
             
             <div class="radio-status">

@@ -64,12 +64,12 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-title); font-weight: 700; color
 
 .header-main { padding: 5px 0; text-align: center; position: relative; }
 .header-main .logo img { 
-    height: 120px; 
+    height: 180px; 
     width: auto; 
     margin: 0 auto; 
     mix-blend-mode: multiply; /* Truque CSS para remover o fundo branco da imagem */
     object-fit: contain;
-    transform: scale(1.6); /* Aumenta a logo ignorando o espaço em branco ao redor dela */
+    transform: scale(2.4); /* Aumenta a logo ignorando o espaço em branco ao redor dela */
 }
 
 .header-nav { border-top: none; border-bottom: none; position: sticky; top: 0; background: var(--color-primary); z-index: 100; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
@@ -337,7 +337,8 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-title); font-weight: 700; color
 .floating-radio-logo-container img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    transform: scale(1.5);
 }
 
 .floating-radio-info {
