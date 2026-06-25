@@ -24,6 +24,7 @@
     RewriteRule ^login/?$ login.php [L]
     RewriteRule ^cadastro/?$ cadastro.php [L]
     RewriteRule ^perfil/?$ perfil.php [L]
+    RewriteRule ^migrar-banco/?$ migrar-banco.php [L]
 
     # Fallback de contingência
     FallbackResource index.php

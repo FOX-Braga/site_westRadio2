@@ -1,7 +1,15 @@
 <?php
 require_once __DIR__ . '/config/database.php';
-$pdo = Database::getInstance();
+require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/auth.php';
 
+// Apenas administradores podem rodar a migração em produção
+requirePanelAccess();
+if (!isAdmin()) {
+    die("<h2 style='color:red;'>Acesso Negado. Você precisa ser um administrador.</h2>");
+}
+
+$pdo = Database::getInstance();
 echo "<div style='font-family: sans-serif; padding: 20px;'>";
 echo "<h1>Iniciando Verificação do Banco de Dados...</h1>";
 echo "<p>Isso garantirá que todas as tabelas e colunas necessárias existam, sem apagar nenhum dado.</p>";
