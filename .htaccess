@@ -1,8 +1,8 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Evita listagem de diretórios
-    Options -Indexes
+    # Evita listagem de diretórios e conflitos de MultiViews (que causam erro 404)
+    Options -Indexes -MultiViews
 
     # Forçar HTTPS (HostGator AutoSSL)
     RewriteCond %{HTTPS} off

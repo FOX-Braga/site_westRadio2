@@ -31,6 +31,7 @@ if ($request_uri === '/contato') { require_once __DIR__ . '/contato.php'; exit; 
 if ($request_uri === '/login') { require_once __DIR__ . '/login.php'; exit; }
 if ($request_uri === '/cadastro') { require_once __DIR__ . '/cadastro.php'; exit; }
 if ($request_uri === '/perfil') { require_once __DIR__ . '/perfil.php'; exit; }
+if ($request_uri === '/migrar-banco') { require_once __DIR__ . '/migrar-banco.php'; exit; }
 
 $page_title = "Home";
 require_once __DIR__ . '/includes/header.php';
