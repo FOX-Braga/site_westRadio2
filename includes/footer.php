@@ -6,8 +6,8 @@
             <!-- Coluna 1: Logo e Social -->
             <div class="footer-col">
                 <div class="logo-container" style="display: flex; align-items: center; justify-content: flex-start; margin-bottom: 20px;">
-                    <a href="<?= BASE_URL ?>/" class="logo" style="display: inline-block;">
-                        <img src="<?= BASE_URL ?>/assets/logo-footer.png" alt="96News Logo" style="height: 140px; transform: scale(1.6); width: auto; object-fit: contain; margin-left: 20px;">
+                    <a href="<?= BASE_URL ?>/" class="logo" style="display: inline-block; background: #fff; border-radius: 8px; padding: 10px;">
+                        <img src="<?= BASE_URL ?>/assets/logo-footer.png" alt="96News Logo" style="height: 90px; width: auto; object-fit: contain; display: block;">
                     </a>
                 </div>
                 <p style="color: rgba(255, 255, 255, 0.7); line-height: 1.6; font-size: 0.9rem; margin-bottom: 25px;">
