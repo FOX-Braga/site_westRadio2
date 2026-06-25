@@ -78,12 +78,12 @@ try {
             'senha' => "TEXT NOT NULL DEFAULT ''",
             'tipo' => "TEXT DEFAULT 'usuario'",
             'foto_perfil' => 'TEXT',
-            'created_at' => 'DATETIME DEFAULT CURRENT_TIMESTAMP'
+            'created_at' => 'DATETIME'
         ],
         'categorias' => [
             'nome' => "TEXT NOT NULL DEFAULT ''",
             'slug' => "TEXT NOT NULL DEFAULT ''",
-            'created_at' => 'DATETIME DEFAULT CURRENT_TIMESTAMP'
+            'created_at' => 'DATETIME'
         ],
         'noticias' => [
             'titulo' => "TEXT NOT NULL DEFAULT ''",
@@ -98,8 +98,8 @@ try {
             'urgente' => 'INTEGER DEFAULT 0',
             'data_agendamento' => 'DATETIME',
             'views' => 'INTEGER DEFAULT 0',
-            'created_at' => 'DATETIME DEFAULT CURRENT_TIMESTAMP',
-            'updated_at' => 'DATETIME DEFAULT CURRENT_TIMESTAMP'
+            'created_at' => 'DATETIME',
+            'updated_at' => 'DATETIME'
         ],
         'banners' => [
             'titulo' => "TEXT NOT NULL DEFAULT ''",
@@ -107,7 +107,7 @@ try {
             'link' => 'TEXT',
             'posicao' => "TEXT DEFAULT 'topo'",
             'ativo' => 'INTEGER DEFAULT 1',
-            'created_at' => 'DATETIME DEFAULT CURRENT_TIMESTAMP'
+            'created_at' => 'DATETIME'
         ]
     ];
 

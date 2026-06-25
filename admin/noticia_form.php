@@ -2,9 +2,9 @@
 $page_title = isset($_GET['id']) ? "Editar Notícia" : "Nova Notícia";
 
 // Incluir conexões básicas antes do HTML para poder fazer redirects
-require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../includes/functions.php';
-require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/auth.php';
 requirePanelAccess();
 
 $pdo = Database::getInstance();
