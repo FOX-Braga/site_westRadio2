@@ -61,7 +61,7 @@ if (isset($pdo)) {
     <meta property="og:description" content="<?= isset($page_desc) ? escape($page_desc) : SITE_DESC ?>">
     <meta property="og:type" content="website">
     
-    <link rel="icon" href="<?= BASE_URL ?>/assets/logo-96news.png" type="image/png">
+    <link rel="icon" href="<?= BASE_URL ?>/assets/logo-footer.png" type="image/png">
     
     <!-- FontAwesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
