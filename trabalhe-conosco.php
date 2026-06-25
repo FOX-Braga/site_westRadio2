@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem_retorno = "Por favor, preencha todos os campos obrigatórios.";
         $tipo_alerta = "error";
     } else {
-        $to = "direcao@antena1cg.com.br";
+        $to = "time@antena1cg.com.br";
         $subject = "Novo Currículo: " . $nome . " - Vaga: " . $vaga;
         
         $message = "Você recebeu um novo currículo através do site.\n\n";
@@ -193,8 +193,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="container">
     <div class="form-container">
         <div class="form-header">
-            <h1>Junte-se à Nossa Equipe</h1>
-            <p>Envie seu currículo para <strong>direcao@antena1cg.com.br</strong> preenchendo o formulário abaixo.</p>
+            <h1>FAÇA PARTE DO TIME</h1>
+            <p>Envie seu currículo para <strong>time@antena1cg.com.br</strong> preenchendo o formulário abaixo.</p>
         </div>
 
         <?php if (!empty($mensagem_retorno)): ?>

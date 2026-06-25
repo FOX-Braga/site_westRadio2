@@ -26,25 +26,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div style="margin-bottom: 30px;">
                 <h4 style="font-size: 1.1rem; margin-bottom: 5px;"><i class="fas fa-newspaper" style="color: var(--color-primary); margin-right: 8px;"></i> Redação</h4>
                 <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 5px;">Sugestões de pautas, denúncias e correções.</p>
-                <a href="mailto:redacao@96news.com" style="color: var(--color-primary); font-weight: 600;">redacao@96news.com</a>
+                <a href="mailto:redacao@96news.com.br" style="color: var(--color-primary); font-weight: 600;">redacao@96news.com.br</a>
             </div>
             
             <div style="margin-bottom: 30px;">
                 <h4 style="font-size: 1.1rem; margin-bottom: 5px;"><i class="fas fa-bullhorn" style="color: var(--color-primary); margin-right: 8px;"></i> Comercial / Anuncie</h4>
                 <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 5px;">Mídia kit, publicidade e parcerias institucionais.</p>
-                <a href="mailto:comercial@96news.com" style="color: var(--color-primary); font-weight: 600;">comercial@96news.com</a>
+                <a href="mailto:comercial@96news.com.br" style="color: var(--color-primary); font-weight: 600;">comercial@96news.com.br</a>
             </div>
             
             <div style="margin-bottom: 30px;">
                 <h4 style="font-size: 1.1rem; margin-bottom: 5px;"><i class="fas fa-headset" style="color: var(--color-primary); margin-right: 8px;"></i> Central do Assinante</h4>
                 <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 5px;">Dúvidas sobre sua assinatura ou acesso.</p>
-                <a href="mailto:assinante@96news.com" style="color: var(--color-primary); font-weight: 600;">assinante@96news.com</a><br>
-                <span style="font-size: 0.9rem; color: var(--color-text-muted);"><i class="fab fa-whatsapp"></i> (67) 99999-0000</span>
+                <a href="mailto:assinante@96news.com.br" style="color: var(--color-primary); font-weight: 600;">assinante@96news.com.br</a><br>
+                <span style="font-size: 0.9rem; color: var(--color-text-muted);"><i class="fab fa-whatsapp"></i> (67) 99873-2692</span>
             </div>
             
             <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid var(--color-border);">
                 <h4 style="font-size: 1.1rem; margin-bottom: 10px;">Sede Administrativa</h4>
-                <p style="color: var(--color-text-muted); font-size: 0.95rem; line-height: 1.6;">Av. Afonso Pena, 1234 - Centro<br>Campo Grande - MS, 79000-000<br>Brasil</p>
+                <p style="color: var(--color-text-muted); font-size: 0.95rem; line-height: 1.6;">Rua Gel Odorico Quadros, 253</p>
+            </div>
+            
+            <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid var(--color-border);">
+                <h4 style="font-size: 1.1rem; margin-bottom: 10px; color: var(--color-accent);"><i class="fas fa-briefcase" style="margin-right: 8px;"></i> Faça Parte do Time (Trabalhe Conosco)</h4>
+                <p style="color: var(--color-text-muted); font-size: 0.95rem; line-height: 1.6;">Envie seu currículo para <a href="mailto:time@antena1cg.com.br" style="color: var(--color-primary); font-weight: 600;">time@antena1cg.com.br</a> ou preencha o formulário ao lado.</p>
             </div>
         </div>
         

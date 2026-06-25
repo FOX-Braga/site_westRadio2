@@ -126,9 +126,9 @@ if (isset($pdo)) {
             </div>
 
             <!-- Alteração da Logo Centralizada -->
-            <div style="display: flex; justify-content: center;">
+            <div style="display: flex; justify-content: center; margin-bottom: -15px;">
                 <a href="<?= BASE_URL ?>/" class="logo" style="display: block; text-decoration: none;">
-                    <img src="<?= BASE_URL ?>/assets/logo-96news.png" alt="96News" style="height: 140px; width: auto; mix-blend-mode: multiply; object-fit: contain;">
+                    <img src="<?= BASE_URL ?>/assets/logo-96news.png" alt="96News" style="height: 100px; transform: scale(2.5); width: auto; mix-blend-mode: multiply; object-fit: contain;">
                 </a>
             </div>
 
