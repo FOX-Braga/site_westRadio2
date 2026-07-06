@@ -79,16 +79,50 @@ if (isset($pdo)) {
     <!-- Top Bar -->
     <div class="header-top">
         <div class="container">
-            <div class="header-top-left">
+            <div class="header-top-left" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
                 <span><i class="far fa-calendar-alt"></i> <?= date('d \d\e M, Y') ?></span>
                 <span id="temp-display" style="border-left: 1px solid var(--color-border); padding-left: 15px;"><i class="fas fa-cloud-sun"></i> --°C Campo Grande</span>
+                
+                <!-- Informações Financeiras / Bolsa -->
+                <span id="finance-display" style="border-left: 1px solid var(--color-border); padding-left: 15px; display: flex; gap: 15px; align-items: center; font-size: 0.9em; font-weight: 600;">
+                    <span title="Dólar Comercial"><i class="fas fa-dollar-sign" style="color: #28a745;"></i> <span id="usd-rate">--</span></span>
+                    <span title="Euro"><i class="fas fa-euro-sign" style="color: #007bff;"></i> <span id="eur-rate">--</span></span>
+                    <span title="Bitcoin"><i class="fab fa-bitcoin" style="color: #f7931a;"></i> <span id="btc-rate">--</span></span>
+                </span>
+
                 <script>
                 document.addEventListener("DOMContentLoaded", function() {
+                    // Clima
                     fetch('https://api.open-meteo.com/v1/forecast?latitude=-20.4428&longitude=-54.6464&current_weather=true')
                         .then(response => response.json())
                         .then(data => {
                             if (data && data.current_weather && data.current_weather.temperature !== undefined) {
                                 document.getElementById('temp-display').innerHTML = '<i class="fas fa-cloud-sun"></i> ' + Math.round(data.current_weather.temperature) + '°C Campo Grande';
+                            }
+                        })
+                        .catch(err => console.error(err));
+
+                    // Cotações Financeiras (AwesomeAPI)
+                    fetch('https://economia.awesomeapi.com.br/last/USD-BRL,EUR-BRL,BTC-BRL')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.USDBRL) {
+                                const usd = parseFloat(data.USDBRL.bid).toFixed(2).replace('.', ',');
+                                let color = parseFloat(data.USDBRL.pctChange) < 0 ? '#dc3545' : '#28a745';
+                                let icon = parseFloat(data.USDBRL.pctChange) < 0 ? 'fa-caret-down' : 'fa-caret-up';
+                                document.getElementById('usd-rate').innerHTML = `R$ ${usd} <i class="fas ${icon}" style="color: ${color}; margin-left: 2px;"></i>`;
+                            }
+                            if (data.EURBRL) {
+                                const eur = parseFloat(data.EURBRL.bid).toFixed(2).replace('.', ',');
+                                let color = parseFloat(data.EURBRL.pctChange) < 0 ? '#dc3545' : '#28a745';
+                                let icon = parseFloat(data.EURBRL.pctChange) < 0 ? 'fa-caret-down' : 'fa-caret-up';
+                                document.getElementById('eur-rate').innerHTML = `R$ ${eur} <i class="fas ${icon}" style="color: ${color}; margin-left: 2px;"></i>`;
+                            }
+                            if (data.BTCBRL) {
+                                const btc = parseFloat(data.BTCBRL.bid).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                                let color = parseFloat(data.BTCBRL.pctChange) < 0 ? '#dc3545' : '#28a745';
+                                let icon = parseFloat(data.BTCBRL.pctChange) < 0 ? 'fa-caret-down' : 'fa-caret-up';
+                                document.getElementById('btc-rate').innerHTML = `R$ ${btc} <i class="fas ${icon}" style="color: ${color}; margin-left: 2px;"></i>`;
                             }
                         })
                         .catch(err => console.error(err));
