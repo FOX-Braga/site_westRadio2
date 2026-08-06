@@ -96,6 +96,16 @@ if (isset($_SESSION['user_id'])) {
 
 $page_title = $noticia['titulo'];
 $page_desc = $noticia['subtitulo'];
+
+$page_image = '';
+if (!empty($noticia['imagem_destacada'])) {
+    if (str_starts_with($noticia['imagem_destacada'], 'data:')) {
+        $page_image = $noticia['imagem_destacada'];
+    } else {
+        $page_image = BASE_URL . '/uploads/noticias/' . escape($noticia['imagem_destacada']);
+    }
+}
+
 require_once __DIR__ . '/includes/header.php';
 ?>
 
