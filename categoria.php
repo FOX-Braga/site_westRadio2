@@ -11,36 +11,45 @@ if (empty($slug)) {
 
 $pdo = Database::getInstance();
 
-// Buscar a categoria
-$stmtCat = $pdo->prepare("SELECT * FROM categorias WHERE slug = ?");
-$stmtCat->execute([$slug]);
-$categoria = $stmtCat->fetch();
+if ($slug === 'ultimas-noticias') {
+    $categoria = [
+        'id' => null,
+        'nome' => 'Últimas Notícias',
+        'cor' => 'var(--color-primary)',
+        'slug' => 'ultimas-noticias'
+    ];
+} else {
+    // Buscar a categoria
+    $stmtCat = $pdo->prepare("SELECT * FROM categorias WHERE slug = ?");
+    $stmtCat->execute([$slug]);
+    $categoria = $stmtCat->fetch();
 
-if (!$categoria) {
-    header("HTTP/1.0 404 Not Found");
-    $page_title = "Categoria Não Encontrada";
-    require_once __DIR__ . '/includes/header.php';
-    ?>
-    <div class="container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 55vh; text-align: center; padding: 60px 20px;">
-        <div style="font-size: 6rem; color: var(--color-primary); margin-bottom: 25px; animation: pulse 2s infinite;">
-            <i class="fas fa-tags" style="opacity: 0.5;"></i>
+    if (!$categoria) {
+        header("HTTP/1.0 404 Not Found");
+        $page_title = "Categoria Não Encontrada";
+        require_once __DIR__ . '/includes/header.php';
+        ?>
+        <div class="container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 55vh; text-align: center; padding: 60px 20px;">
+            <div style="font-size: 6rem; color: var(--color-primary); margin-bottom: 25px; animation: pulse 2s infinite;">
+                <i class="fas fa-tags" style="opacity: 0.5;"></i>
+            </div>
+            <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 15px; color: var(--color-text);">Oops! Categoria não encontrada</h1>
+            <p style="font-size: 1.1rem; color: var(--color-text-muted); max-width: 600px; margin-bottom: 35px; line-height: 1.6;">
+                A categoria que você selecionou não existe ou foi removida do nosso portal de notícias.
+            </p>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                <a href="<?= BASE_URL ?>/" class="btn" style="padding: 12px 30px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-home"></i> Voltar para a Home
+                </a>
+                <a href="<?= BASE_URL ?>/busca.php" class="btn btn-outline" style="padding: 12px 30px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-search"></i> Pesquisar Notícias
+                </a>
+            </div>
         </div>
-        <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 15px; color: var(--color-text);">Oops! Categoria não encontrada</h1>
-        <p style="font-size: 1.1rem; color: var(--color-text-muted); max-width: 600px; margin-bottom: 35px; line-height: 1.6;">
-            A categoria que você selecionou não existe ou foi removida do nosso portal de notícias.
-        </p>
-        <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
-            <a href="<?= BASE_URL ?>/" class="btn" style="padding: 12px 30px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-home"></i> Voltar para a Home
-            </a>
-            <a href="<?= BASE_URL ?>/busca.php" class="btn btn-outline" style="padding: 12px 30px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-search"></i> Pesquisar Notícias
-            </a>
-        </div>
-    </div>
-    <?php
-    require_once __DIR__ . '/includes/footer.php';
-    exit;
+        <?php
+        require_once __DIR__ . '/includes/footer.php';
+        exit;
+    }
 }
 
 // Paginação
@@ -49,19 +58,31 @@ if ($page < 1) $page = 1;
 $limit = 12;
 $offset = ($page - 1) * $limit;
 
-// Contar total de notícias na categoria
-$stmtCount = $pdo->prepare("SELECT COUNT(*) as total FROM noticias WHERE categoria_id = ? AND status = 'publicado'");
-$stmtCount->execute([$categoria['id']]);
-$total = $stmtCount->fetch()['total'];
-$total_pages = ceil($total / $limit);
+// Contar e buscar notícias
+if ($slug === 'ultimas-noticias') {
+    $stmtCount = $pdo->query("SELECT COUNT(*) as total FROM noticias WHERE status = 'publicado'");
+    $total = $stmtCount->fetch()['total'];
+    $total_pages = ceil($total / $limit);
 
-// Buscar notícias
-$stmtNoticias = $pdo->prepare("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
-                               FROM noticias n 
-                               JOIN categorias c ON n.categoria_id = c.id 
-                               WHERE n.categoria_id = ? AND n.status = 'publicado' 
-                               ORDER BY n.criado_em DESC LIMIT $limit OFFSET $offset");
-$stmtNoticias->execute([$categoria['id']]);
+    $stmtNoticias = $pdo->prepare("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
+                                   FROM noticias n 
+                                   JOIN categorias c ON n.categoria_id = c.id 
+                                   WHERE n.status = 'publicado' 
+                                   ORDER BY n.criado_em DESC LIMIT $limit OFFSET $offset");
+    $stmtNoticias->execute();
+} else {
+    $stmtCount = $pdo->prepare("SELECT COUNT(*) as total FROM noticias WHERE categoria_id = ? AND status = 'publicado'");
+    $stmtCount->execute([$categoria['id']]);
+    $total = $stmtCount->fetch()['total'];
+    $total_pages = ceil($total / $limit);
+
+    $stmtNoticias = $pdo->prepare("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
+                                   FROM noticias n 
+                                   JOIN categorias c ON n.categoria_id = c.id 
+                                   WHERE n.categoria_id = ? AND n.status = 'publicado' 
+                                   ORDER BY n.criado_em DESC LIMIT $limit OFFSET $offset");
+    $stmtNoticias->execute([$categoria['id']]);
+}
 $noticias = $stmtNoticias->fetchAll();
 
 $page_title = $categoria['nome'];
