@@ -57,15 +57,24 @@ if (isset($pdo)) {
     
     <!-- Meta tags SEO / Open Graph -->
     <meta name="description" content="<?= isset($page_desc) ? escape($page_desc) : SITE_DESC ?>">
+    <link rel="canonical" href="<?= BASE_URL . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?>">
+    
+    <!-- Open Graph (Facebook/LinkedIn) -->
     <meta property="og:title" content="<?= isset($page_title) ? escape($page_title) : SITE_NAME ?>">
     <meta property="og:description" content="<?= isset($page_desc) ? escape($page_desc) : SITE_DESC ?>">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="<?= BASE_URL . $_SERVER['REQUEST_URI'] ?>">
-    <?php if (isset($page_image) && !empty($page_image)): ?>
-    <meta property="og:image" content="<?= $page_image ?>">
-    <?php else: ?>
-    <meta property="og:image" content="<?= BASE_URL ?>/assets/logo-96news.png">
-    <?php endif; ?>
+    <meta property="og:type" content="<?= isset($is_article) && $is_article ? 'article' : 'website' ?>">
+    <meta property="og:url" content="<?= BASE_URL . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?>">
+    <?php 
+    $final_image = (isset($page_image) && !empty($page_image)) ? $page_image : BASE_URL . '/assets/logo-96news.png';
+    ?>
+    <meta property="og:image" content="<?= $final_image ?>">
+    <meta property="og:site_name" content="<?= SITE_NAME ?>">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?= isset($page_title) ? escape($page_title) : SITE_NAME ?>">
+    <meta name="twitter:description" content="<?= isset($page_desc) ? escape($page_desc) : SITE_DESC ?>">
+    <meta name="twitter:image" content="<?= $final_image ?>">
     
     <link rel="icon" href="<?= BASE_URL ?>/assets/logo-footer.png" type="image/png">
     

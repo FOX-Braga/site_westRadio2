@@ -25,6 +25,7 @@
     RewriteRule ^cadastro/?$ cadastro.php [L]
     RewriteRule ^perfil/?$ perfil.php [L]
     RewriteRule ^migrar-banco/?$ migrar-banco.php [L]
+    RewriteRule ^sitemap\.xml$ sitemap.php [L]
 
     # Fallback de contingência
     FallbackResource index.php

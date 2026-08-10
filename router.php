@@ -45,7 +45,8 @@ $paginas_simples = [
     '/contato' => 'contato.php',
     '/login' => 'login.php',
     '/cadastro' => 'cadastro.php',
-    '/perfil' => 'perfil.php'
+    '/perfil' => 'perfil.php',
+    '/sitemap.xml' => 'sitemap.php'
 ];
 
 if (isset($paginas_simples[$uri])) {

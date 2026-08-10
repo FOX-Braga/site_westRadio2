@@ -96,6 +96,7 @@ if (isset($_SESSION['user_id'])) {
 
 $page_title = $noticia['titulo'];
 $page_desc = $noticia['subtitulo'];
+$is_article = true;
 
 $page_image = '';
 if (!empty($noticia['imagem_destacada'])) {
@@ -108,6 +109,23 @@ if (!empty($noticia['imagem_destacada'])) {
 
 require_once __DIR__ . '/includes/header.php';
 ?>
+
+<!-- JSON-LD SEO Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": "<?= escape($noticia['titulo']) ?>",
+  "image": [
+    "<?= $page_image ?>"
+  ],
+  "datePublished": "<?= date('c', strtotime($noticia['criado_em'])) ?>",
+  "author": [{
+      "@type": "Person",
+      "name": "<?= escape($noticia['autor_nome']) ?>"
+  }]
+}
+</script>
 
 <style>
 /* Estilos Específicos da Página de Notícia */
