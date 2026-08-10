@@ -56,7 +56,7 @@ $todas_ultimas = $stmt->fetchAll();
 // Busca Destaques da Manhã (04:00 às 12:59)
 $stmtManha = $pdo->query("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
                           FROM noticias n JOIN categorias c ON n.categoria_id = c.id 
-                          WHERE n.status = 'publicado' AND n.destaque = 1 
+                          WHERE n.status = 'publicado' 
                           AND SUBSTR(n.criado_em, 12, 2) >= '04' AND SUBSTR(n.criado_em, 12, 2) <= '12'
                           ORDER BY n.criado_em DESC LIMIT 10");
 $destaques_manha = $stmtManha->fetchAll();
@@ -64,7 +64,7 @@ $destaques_manha = $stmtManha->fetchAll();
 // Busca Destaques da Tarde (13:00 às 19:59)
 $stmtTarde = $pdo->query("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
                           FROM noticias n JOIN categorias c ON n.categoria_id = c.id 
-                          WHERE n.status = 'publicado' AND n.destaque = 1 
+                          WHERE n.status = 'publicado' 
                           AND SUBSTR(n.criado_em, 12, 2) >= '13' AND SUBSTR(n.criado_em, 12, 2) <= '19'
                           ORDER BY n.criado_em DESC LIMIT 10");
 $destaques_tarde = $stmtTarde->fetchAll();

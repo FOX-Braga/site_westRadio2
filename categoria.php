@@ -116,22 +116,15 @@ require_once __DIR__ . '/includes/header.php';
     <!-- Paginação -->
     <?php if ($total_pages > 1): ?>
     <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 50px;">
-        <?php if ($slug === 'ultimas-noticias'): ?>
-            <?php if ($page < $total_pages): ?>
-                <button id="btn-load-more" data-page="<?= $page + 1 ?>" data-max="<?= $total_pages ?>" class="btn" style="background-color: var(--color-primary); color: white; padding: 12px 30px; font-size: 1.1rem; border-radius: 4px; cursor: pointer; border: none;">
-                    Carregar Mais Notícias <i class="fas fa-chevron-down" style="margin-left: 8px;"></i>
-                </button>
-            <?php endif; ?>
-        <?php else: ?>
-            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                <a href="?p=<?= $i ?>" class="btn <?= $i === $page ? '' : 'btn-outline' ?>" style="<?= $i === $page ? 'background-color:' . escape($categoria['cor']) . ';' : 'border-color:' . escape($categoria['cor']) . '; color:' . escape($categoria['cor']) . ';' ?>"><?= $i ?></a>
-            <?php endfor; ?>
+        <?php if ($page < $total_pages): ?>
+            <button id="btn-load-more" data-page="<?= $page + 1 ?>" data-max="<?= $total_pages ?>" class="btn" style="background-color: <?= escape($categoria['cor']) ?>; color: white; padding: 12px 30px; font-size: 1.1rem; border-radius: 4px; cursor: pointer; border: none;">
+                Carregar Mais Notícias <i class="fas fa-chevron-down" style="margin-left: 8px;"></i>
+            </button>
         <?php endif; ?>
     </div>
     <?php endif; ?>
 </div>
 
-<?php if ($slug === 'ultimas-noticias'): ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const btn = document.getElementById('btn-load-more');
@@ -179,6 +172,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-<?php endif; ?>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
