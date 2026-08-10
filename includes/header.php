@@ -172,8 +172,85 @@ if (isset($pdo)) {
                 </a>
             </div>
 
-            <!-- Botão da Rádio alinhado à direita -->
-            <div></div>
+            <!-- Pesquisa Inteligente -->
+            <div style="display: flex; justify-content: flex-end; position: relative;">
+                <div class="search-container" style="position: relative; width: 100%; max-width: 300px;">
+                    <form action="<?= BASE_URL ?>/busca.php" method="GET" style="display: flex; align-items: center; border: 1px solid var(--color-border); border-radius: 20px; padding: 5px 15px; background: var(--color-surface);">
+                        <input type="text" name="q" id="smart-search-input" placeholder="Pesquisar..." autocomplete="off" style="border: none; background: transparent; outline: none; width: 100%; color: var(--color-text);">
+                        <button type="submit" style="background: transparent; border: none; cursor: pointer; color: var(--color-text-muted);"><i class="fas fa-search"></i></button>
+                    </form>
+                    <!-- Resultados da Busca -->
+                    <div id="smart-search-results" style="display: none; position: absolute; top: 100%; right: 0; width: 350px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-top: 10px; z-index: 1000; overflow: hidden;">
+                        <div id="smart-search-list" style="max-height: 400px; overflow-y: auto;"></div>
+                        <a href="#" id="smart-search-more" style="display: block; text-align: center; padding: 10px; background: var(--color-bg); color: var(--color-primary); font-size: 0.9em; font-weight: 700; text-decoration: none; border-top: 1px solid var(--color-border);">Ver todos os resultados</a>
+                    </div>
+                </div>
+            </div>
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const searchInput = document.getElementById('smart-search-input');
+                const searchResults = document.getElementById('smart-search-results');
+                const searchList = document.getElementById('smart-search-list');
+                const searchMore = document.getElementById('smart-search-more');
+                let debounceTimer;
+
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(debounceTimer);
+                    const query = this.value.trim();
+                    
+                    if (query.length < 2) {
+                        searchResults.style.display = 'none';
+                        return;
+                    }
+
+                    debounceTimer = setTimeout(() => {
+                        fetch('<?= BASE_URL ?>/api_busca.php?q=' + encodeURIComponent(query))
+                            .then(res => res.json())
+                            .then(data => {
+                                searchList.innerHTML = '';
+                                if (data.length > 0) {
+                                    data.forEach(item => {
+                                        const el = document.createElement('a');
+                                        el.href = '<?= BASE_URL ?>/noticia/' + item.slug;
+                                        el.style.display = 'flex';
+                                        el.style.alignItems = 'center';
+                                        el.style.gap = '10px';
+                                        el.style.padding = '10px';
+                                        el.style.borderBottom = '1px solid var(--color-border)';
+                                        el.style.textDecoration = 'none';
+                                        el.style.color = 'var(--color-text)';
+                                        
+                                        el.onmouseover = () => el.style.backgroundColor = 'var(--color-bg)';
+                                        el.onmouseout = () => el.style.backgroundColor = 'transparent';
+
+                                        el.innerHTML = `
+                                            <img src="${item.imagem}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                                            <div style="flex: 1;">
+                                                <div style="font-size: 0.75em; color: ${item.categoria_cor}; font-weight: 700; text-transform: uppercase;">${item.categoria_nome}</div>
+                                                <div style="font-size: 0.9em; font-weight: 600; line-height: 1.2;">${item.titulo}</div>
+                                            </div>
+                                        `;
+                                        searchList.appendChild(el);
+                                    });
+                                    searchMore.href = '<?= BASE_URL ?>/busca.php?q=' + encodeURIComponent(query);
+                                    searchMore.style.display = 'block';
+                                    searchResults.style.display = 'block';
+                                } else {
+                                    searchList.innerHTML = '<div style="padding: 15px; text-align: center; color: var(--color-text-muted);">Nenhum resultado encontrado.</div>';
+                                    searchMore.style.display = 'none';
+                                    searchResults.style.display = 'block';
+                                }
+                            });
+                    }, 300);
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                        searchResults.style.display = 'none';
+                    }
+                });
+            });
+            </script>
         </div>
     </div>
     
