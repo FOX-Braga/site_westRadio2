@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h4 style="font-size: 1.1rem; margin-bottom: 5px;"><i class="fas fa-headset" style="color: var(--color-primary); margin-right: 8px;"></i> Central do Assinante</h4>
                 <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 5px;">Dúvidas sobre sua assinatura ou acesso.</p>
                 <a href="mailto:assinante@96news.com.br" style="color: var(--color-primary); font-weight: 600;">assinante@96news.com.br</a><br>
-                <span style="font-size: 0.9rem; color: var(--color-text-muted);"><i class="fab fa-whatsapp"></i> (67) 99873-2692</span>
+                <a href="https://wa.me/5567999743036" target="_blank" style="font-size: 0.9rem; color: var(--color-text-muted); text-decoration: none;"><i class="fab fa-whatsapp"></i> 67 99974-3036</a>
             </div>
             
             <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid var(--color-border);">

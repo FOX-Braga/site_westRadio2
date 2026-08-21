@@ -94,7 +94,7 @@
 ?>
 
 <!-- 7. Integração WhatsApp -->
-<a href="https://wa.me/5567998732692" target="_blank" title="Fale conosco" class="whatsapp-float">
+<a href="https://wa.me/5567999743036" target="_blank" title="Fale conosco" class="whatsapp-float">
     <i class="fab fa-whatsapp"></i>
 </a>
 
