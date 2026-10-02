@@ -12,10 +12,13 @@ if (empty($slug)) {
 $pdo = Database::getInstance();
 
 // Buscar a notícia
-$stmt = $pdo->prepare("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug, u.nome as autor_nome, u.bio as autor_bio, u.foto_perfil as autor_foto 
+$stmt = $pdo->prepare("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug, 
+                       COALESCE(u.nome, n.autor_nome, 'Redação') as autor_nome, 
+                       u.bio as autor_bio, 
+                       u.foto_perfil as autor_foto 
                        FROM noticias n 
-                       JOIN categorias c ON n.categoria_id = c.id 
-                       JOIN usuarios u ON n.autor_id = u.id 
+                       LEFT JOIN categorias c ON n.categoria_id = c.id 
+                       LEFT JOIN usuarios u ON n.autor_id = u.id 
                        WHERE n.slug = ? AND n.status = 'publicado'");
 $stmt->execute([$slug]);
 $noticia = $stmt->fetch();
@@ -229,11 +232,14 @@ require_once __DIR__ . '/includes/header.php';
 
     <!-- Autor -->
     <div class="author-box">
-        <?php $foto_autor = $noticia['autor_foto'] ? BASE_URL . '/uploads/avatares/' . $noticia['autor_foto'] : 'https://placehold.co/100x100/eeeeee/999999?text=' . strtoupper(substr($noticia['autor_nome'], 0, 1)); ?>
-        <img src="<?= $foto_autor ?>" alt="<?= escape($noticia['autor_nome']) ?>" class="author-avatar">
+        <?php 
+        $autor_nome_exibicao = !empty($noticia['autor_nome']) ? $noticia['autor_nome'] : 'Redação';
+        $foto_autor = !empty($noticia['autor_foto']) ? BASE_URL . '/uploads/avatares/' . $noticia['autor_foto'] : 'https://placehold.co/100x100/eeeeee/999999?text=' . strtoupper(substr($autor_nome_exibicao, 0, 1)); 
+        ?>
+        <img src="<?= $foto_autor ?>" alt="<?= escape($autor_nome_exibicao) ?>" class="author-avatar">
         <div class="author-info">
-            <h3><?= escape($noticia['autor_nome']) ?></h3>
-            <p><?= escape($noticia['autor_bio'] ?? 'Repórter e colaborador do portal.') ?></p>
+            <h3><?= escape($autor_nome_exibicao) ?></h3>
+            <p><?= escape($noticia['autor_bio'] ?: 'Equipe editorial do portal 96 News.') ?></p>
         </div>
     </div>
 

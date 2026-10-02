@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS `noticias` (
   `conteudo` TEXT NOT NULL,
   `imagem_destacada` TEXT DEFAULT NULL,
   `legenda_imagem` TEXT DEFAULT NULL,
-  `autor_id` INTEGER NOT NULL,
+  `autor_id` INTEGER DEFAULT NULL,
+  `autor_nome` TEXT DEFAULT NULL,
   `categoria_id` INTEGER NOT NULL,
   `visualizacoes` INTEGER DEFAULT 0,
   `status` TEXT DEFAULT 'rascunho',
@@ -38,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `noticias` (
   `urgente` INTEGER DEFAULT 0,
   `criado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `atualizado_em` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (`autor_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`autor_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
   FOREIGN KEY (`categoria_id`) REFERENCES `categorias` (`id`) ON DELETE CASCADE
 );
 

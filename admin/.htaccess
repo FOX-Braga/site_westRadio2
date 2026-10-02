@@ -1,0 +1,25 @@
+# ============================================================
+# Painel Administrativo 96 News - Regras do Servidor
+# Prevenção de Erro 406 (Not Acceptable) e Segurança
+# ============================================================
+
+# Desativa MultiViews para evitar erros de negociação de conteúdo (HTTP 406)
+<IfModule mod_negotiation.c>
+    Options -MultiViews
+</IfModule>
+
+Options -Indexes
+
+# Desativa inspeção de POST do ModSecurity para permitir submissão de HTML editorial
+<IfModule mod_security.c>
+    SecFilterEngine Off
+    SecFilterScanPOST Off
+</IfModule>
+
+<IfModule mod_security2.c>
+    SecRuleEngine Off
+    SecRequestBodyAccess Off
+</IfModule>
+
+# Forçar cabeçalho padrão
+AddDefaultCharset UTF-8

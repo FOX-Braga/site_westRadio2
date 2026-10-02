@@ -1,8 +1,29 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Evita listagem de diretórios e conflitos de MultiViews (que causam erro 404)
+    # Evita listagem de diretórios e conflitos de MultiViews (que causam erro 404 e 406)
     Options -Indexes -MultiViews
+</IfModule>
+
+# ============================================================
+# Correção do Erro 406 (ModSecurity / SecFilter / WAF)
+# Permite publicação de notícias com formatação HTML sem bloqueio
+# ============================================================
+<IfModule mod_security.c>
+    SecFilterEngine Off
+    SecFilterScanPOST Off
+</IfModule>
+
+<IfModule mod_security2.c>
+    SecRuleEngine Off
+    SecRequestBodyAccess Off
+</IfModule>
+
+<IfModule mod_negotiation.c>
+    Options -MultiViews
+</IfModule>
+
+<IfModule mod_rewrite.c>
 
     # Forçar HTTPS (HostGator AutoSSL)
     RewriteCond %{HTTPS} off

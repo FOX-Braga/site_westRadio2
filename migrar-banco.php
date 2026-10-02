@@ -44,7 +44,8 @@ try {
         slug TEXT NOT NULL UNIQUE,
         conteudo TEXT NOT NULL,
         imagem_destacada TEXT,
-        autor_id INTEGER NOT NULL,
+        autor_id INTEGER DEFAULT NULL,
+        autor_nome TEXT DEFAULT NULL,
         categoria_id INTEGER NOT NULL,
         status TEXT DEFAULT 'publicado',
         destaque INTEGER DEFAULT 0,
@@ -53,7 +54,7 @@ try {
         views INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(autor_id) REFERENCES usuarios(id),
+        FOREIGN KEY(autor_id) REFERENCES usuarios(id) ON DELETE SET NULL,
         FOREIGN KEY(categoria_id) REFERENCES categorias(id)
     )");
     echo "✔️ Tabela <b>noticias</b> verificada.<br>";

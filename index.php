@@ -37,9 +37,10 @@ $page_title = "Home";
 require_once __DIR__ . '/includes/header.php';
 
 // Busca Destaques Principais
-$stmt = $pdo->query("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug, u.nome as autor_nome 
+$stmt = $pdo->query("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug, 
+                            COALESCE(u.nome, n.autor_nome, 'Redação') as autor_nome 
                      FROM noticias n 
-                     JOIN categorias c ON n.categoria_id = c.id 
+                     LEFT JOIN categorias c ON n.categoria_id = c.id 
                      LEFT JOIN usuarios u ON n.autor_id = u.id
                      WHERE n.status = 'publicado' 
                      ORDER BY n.destaque DESC, n.criado_em DESC LIMIT 4");
@@ -49,13 +50,13 @@ $sub_destaques = array_slice($destaques, 1, 3);
 
 // Busca Últimas Notícias (20 matérias)
 $stmt = $pdo->query("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
-                  FROM noticias n JOIN categorias c ON n.categoria_id = c.id 
+                  FROM noticias n LEFT JOIN categorias c ON n.categoria_id = c.id 
                   WHERE n.status = 'publicado' ORDER BY n.criado_em DESC LIMIT 20");
 $todas_ultimas = $stmt->fetchAll();
 
 // Busca Destaques da Manhã (04:00 às 12:59)
 $stmtManha = $pdo->query("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
-                          FROM noticias n JOIN categorias c ON n.categoria_id = c.id 
+                          FROM noticias n LEFT JOIN categorias c ON n.categoria_id = c.id 
                           WHERE n.status = 'publicado' 
                           AND SUBSTR(n.criado_em, 12, 2) >= '04' AND SUBSTR(n.criado_em, 12, 2) <= '12'
                           ORDER BY n.criado_em DESC LIMIT 10");
@@ -63,7 +64,7 @@ $destaques_manha = $stmtManha->fetchAll();
 
 // Busca Destaques da Tarde (13:00 às 19:59)
 $stmtTarde = $pdo->query("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
-                          FROM noticias n JOIN categorias c ON n.categoria_id = c.id 
+                          FROM noticias n LEFT JOIN categorias c ON n.categoria_id = c.id 
                           WHERE n.status = 'publicado' 
                           AND SUBSTR(n.criado_em, 12, 2) >= '13' AND SUBSTR(n.criado_em, 12, 2) <= '19'
                           ORDER BY n.criado_em DESC LIMIT 10");
@@ -73,8 +74,10 @@ $destaques_tarde = $stmtTarde->fetchAll();
 $categories_slugs = ['mundo', 'politica', 'economia', 'cultura', 'tecnologia', 'saude', 'esportes', 'opiniao'];
 $sections_data = [];
 foreach ($categories_slugs as $slug) {
-    $stmt = $pdo->prepare("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug, u.nome as autor_nome, u.foto_perfil as autor_foto 
-                           FROM noticias n JOIN categorias c ON n.categoria_id = c.id 
+    $stmt = $pdo->prepare("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug, 
+                                  COALESCE(u.nome, n.autor_nome, 'Redação') as autor_nome, 
+                                  u.foto_perfil as autor_foto 
+                           FROM noticias n LEFT JOIN categorias c ON n.categoria_id = c.id 
                            LEFT JOIN usuarios u ON n.autor_id = u.id
                            WHERE n.status = 'publicado' AND c.slug = ? ORDER BY n.criado_em DESC LIMIT 4");
     $stmt->execute([$slug]);

@@ -128,3 +128,5 @@ Seu portal de notícias 96 News já deve estar funcionando perfeitamente.
 
 * **O site diz "Erro ao Conectar ao Banco de Dados":** Volte no **Passo 4**. Você provavelmente digitou o nome do banco de dados ou a senha errada. Lembre-se que o usuário e o banco devem incluir o prefixo do cPanel (ex: `seulogin_...`).
 * **Meu site não está com cadeado verde (HTTPS):** A HostGator instala o cadeado verde automaticamente. Pode levar de 1 a 4 horas após você apontar o domínio. Nossos arquivos de segurança vão forçar o cadeado aparecer assim que ele estiver pronto!
+* **Erro 406 (Not Acceptable) ao postar notícias:** O portal já inclui blindagem automática e regras de desativação do ModSecurity no `.htaccess`. Se por alguma política rígida do servidor o cPanel ainda bloquear, vá no **cPanel > Segurança > ModSecurity**, localize o seu domínio e alterne o botão para **Desativado (Off)**.
+

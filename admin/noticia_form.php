@@ -28,7 +28,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $titulo = trim($_POST['titulo']);
     $subtitulo = trim($_POST['subtitulo']);
     $categoria_id = $_POST['categoria_id'];
-    $conteudo = $_POST['conteudo']; // HTML gerado pelo Quill
+    
+    // Suporte à decodificação Base64 para contornar ModSecurity / SecFilter de hospedagens (Erro 406)
+    if (!empty($_POST['conteudo_b64'])) {
+        $conteudo = base64_decode($_POST['conteudo_b64']);
+    } else {
+        $conteudo = $_POST['conteudo'] ?? '';
+    }
+
     $status = $_POST['status'];
     $data_agendamento = !empty($_POST['data_agendamento']) ? date('Y-m-d H:i:s', strtotime($_POST['data_agendamento'])) : null;
     $destaque = isset($_POST['destaque']) ? 1 : 0;
@@ -73,12 +80,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->query("UPDATE noticias SET destaque = 0");
         }
 
-        $autor_id_post = (isAdmin() && isset($_POST['autor_id'])) ? $_POST['autor_id'] : $_SESSION['user_id'];
+        $autor_id_post = null;
+        if (isAdmin() && isset($_POST['autor_id'])) {
+            $autor_id_post = !empty($_POST['autor_id']) ? (int)$_POST['autor_id'] : null;
+        } else {
+            $autor_id_post = $_SESSION['user_id'] ?? null;
+        }
+
+        // Determina o nome do autor para desacoplamento completo do usuário
+        $autor_nome_post = null;
+        if ($autor_id_post) {
+            $stmtAutor = $pdo->prepare("SELECT nome FROM usuarios WHERE id = ?");
+            $stmtAutor->execute([$autor_id_post]);
+            $autor_nome_post = $stmtAutor->fetchColumn();
+        }
+        if (!$autor_nome_post) {
+            $autor_nome_post = $noticia['autor_nome'] ?? $_SESSION['user_nome'] ?? 'Redação';
+        }
 
         if ($id) {
             try {
-                $stmt = $pdo->prepare("UPDATE noticias SET titulo=?, subtitulo=?, slug=?, conteudo=?, imagem_destacada=?, autor_id=?, categoria_id=?, status=?, destaque=?, urgente=?, data_agendamento=? WHERE id=?");
-                $stmt->execute([$titulo, $subtitulo, $slug, $conteudo, $imagem_destacada, $autor_id_post, $categoria_id, $status, $destaque, $urgente, $data_agendamento, $id]);
+                $stmt = $pdo->prepare("UPDATE noticias SET titulo=?, subtitulo=?, slug=?, conteudo=?, imagem_destacada=?, autor_id=?, autor_nome=?, categoria_id=?, status=?, destaque=?, urgente=?, data_agendamento=? WHERE id=?");
+                $stmt->execute([$titulo, $subtitulo, $slug, $conteudo, $imagem_destacada, $autor_id_post, $autor_nome_post, $categoria_id, $status, $destaque, $urgente, $data_agendamento, $id]);
                 header("Location: noticias.php");
                 exit;
             } catch (PDOException $e) {
@@ -86,8 +109,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } else {
             try {
-                $stmt = $pdo->prepare("INSERT INTO noticias (titulo, subtitulo, slug, conteudo, imagem_destacada, autor_id, categoria_id, status, destaque, urgente, data_agendamento) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([$titulo, $subtitulo, $slug, $conteudo, $imagem_destacada, $autor_id_post, $categoria_id, $status, $destaque, $urgente, $data_agendamento]);
+                $stmt = $pdo->prepare("INSERT INTO noticias (titulo, subtitulo, slug, conteudo, imagem_destacada, autor_id, autor_nome, categoria_id, status, destaque, urgente, data_agendamento) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$titulo, $subtitulo, $slug, $conteudo, $imagem_destacada, $autor_id_post, $autor_nome_post, $categoria_id, $status, $destaque, $urgente, $data_agendamento]);
                 header("Location: noticias.php");
                 exit;
             } catch (PDOException $e) {
@@ -154,6 +177,7 @@ if (!$categoria_id_pre && $cat_slug_pre) {
                     <div class="form-group" style="margin-bottom: 0;">
                         <label>Corpo do Texto</label>
                         <input type="hidden" name="conteudo">
+                        <input type="hidden" name="conteudo_b64" id="conteudo_b64">
                         <div id="editor-container" style="height: 450px; background: #ffffff; font-size: 1.05rem; border-color: var(--admin-border);"><?= $noticia ? $noticia['conteudo'] : '' ?></div>
                     </div>
                 </div>
@@ -195,11 +219,15 @@ if (!$categoria_id_pre && $cat_slug_pre) {
                     <?php if (isAdmin()): ?>
                     <div class="form-group" style="margin-bottom: 0;">
                         <label>Autor / Colunista</label>
-                        <select name="autor_id" class="form-control" required>
+                        <select name="autor_id" class="form-control">
+                            <option value="" <?= empty($autor_id_pre) ? 'selected' : '' ?>>-- Redação (Sem vínculo com perfil) --</option>
                             <?php foreach ($autores as $autor): ?>
                                 <option value="<?= $autor['id'] ?>" <?= ($autor_id_pre == $autor['id']) ? 'selected' : '' ?>><?= escape($autor['nome']) ?> (<?= ucfirst($autor['tipo']) ?>)</option>
                             <?php endforeach; ?>
                         </select>
+                        <small style="color: var(--admin-text-light); font-size: 0.75rem; display: block; margin-top: 5px;">
+                            <i class="fas fa-shield-alt"></i> A matéria permanecerá intacta no site mesmo se o perfil do usuário for excluído futuramente.
+                        </small>
                     </div>
                     <?php endif; ?>
                 </div>

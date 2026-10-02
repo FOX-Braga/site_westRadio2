@@ -7,10 +7,25 @@ require_once __DIR__ . '/includes/header.php';
 $pdo = Database::getInstance();
 
 // Excluir usuário (não permite excluir a si mesmo)
+// REGRA: As notícias são independentes do usuário. Ao excluir um usuário/perfil,
+// as notícias continuam intactas no site com o nome do autor preservado.
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     if (!validateCsrfToken($_GET['token'] ?? '')) die("Acesso Negado (CSRF).");
-    $id = $_GET['delete'];
+    $id = (int)$_GET['delete'];
     if ($id != $_SESSION['user_id']) {
+        // 1. Obter o nome do usuário antes da exclusão para preservar a autoria nas matérias
+        $stmtUser = $pdo->prepare("SELECT nome FROM usuarios WHERE id = ?");
+        $stmtUser->execute([$id]);
+        $nomeAutor = $stmtUser->fetchColumn();
+
+        if ($nomeAutor) {
+            $pdo->prepare("UPDATE noticias SET autor_nome = ? WHERE autor_id = ? AND (autor_nome IS NULL OR autor_nome = '')")->execute([$nomeAutor, $id]);
+        }
+
+        // 2. Desvincular as notícias do usuário (autor_id = NULL), garantindo que nenhuma matéria seja apagada
+        $pdo->prepare("UPDATE noticias SET autor_id = NULL WHERE autor_id = ?")->execute([$id]);
+
+        // 3. Excluir o usuário do sistema
         $pdo->prepare("DELETE FROM usuarios WHERE id = ?")->execute([$id]);
         header("Location: usuarios.php?msg=deleted");
         exit;

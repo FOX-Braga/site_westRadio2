@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS `noticias` (
   `conteudo` longtext NOT NULL,
   `imagem_destacada` varchar(255) DEFAULT NULL,
   `legenda_imagem` varchar(255) DEFAULT NULL,
-  `autor_id` int(11) NOT NULL,
+  `autor_id` int(11) DEFAULT NULL,
+  `autor_nome` varchar(255) DEFAULT NULL,
   `categoria_id` int(11) NOT NULL,
   `visualizacoes` int(11) DEFAULT 0,
   `status` enum('rascunho','publicado') DEFAULT 'rascunho',
@@ -47,7 +48,7 @@ CREATE TABLE IF NOT EXISTS `noticias` (
   UNIQUE KEY `slug` (`slug`),
   KEY `autor_id` (`autor_id`),
   KEY `categoria_id` (`categoria_id`),
-  CONSTRAINT `fk_noticias_autor` FOREIGN KEY (`autor_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_noticias_autor` FOREIGN KEY (`autor_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_noticias_categoria` FOREIGN KEY (`categoria_id`) REFERENCES `categorias` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

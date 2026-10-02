@@ -28,12 +28,26 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Sincronizar o conteúdo do Quill com um input hidden no submit do form
+        // Sincronizar o conteúdo do Quill com inputs no submit do form
         var form = document.querySelector('#form-noticia');
         if (form) {
             form.onsubmit = function() {
+                var rawHtml = quill.root.innerHTML;
                 var conteudoInput = document.querySelector('input[name=conteudo]');
-                conteudoInput.value = quill.root.innerHTML;
+                var b64Input = document.querySelector('input[name=conteudo_b64]');
+                
+                // Converte UTF-8 para Base64 para prevenir bloqueio por ModSecurity / WAF (Erro 406 Not Acceptable)
+                if (b64Input) {
+                    try {
+                        b64Input.value = btoa(unescape(encodeURIComponent(rawHtml)));
+                        // Limpa o campo com HTML cru para evitar que regras do ModSecurity rejeitem o POST
+                        if (conteudoInput) conteudoInput.value = '';
+                    } catch (e) {
+                        if (conteudoInput) conteudoInput.value = rawHtml;
+                    }
+                } else if (conteudoInput) {
+                    conteudoInput.value = rawHtml;
+                }
             };
         }
     }

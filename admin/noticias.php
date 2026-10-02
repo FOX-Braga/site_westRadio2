@@ -30,9 +30,12 @@ $offset = ($page - 1) * $limit;
 $total = $pdo->query("SELECT COUNT(*) FROM noticias")->fetchColumn();
 $total_pages = ceil($total / $limit);
 
-$stmt = $pdo->query("SELECT n.id, n.titulo, n.slug, n.status, n.visualizacoes, n.criado_em, c.nome as categoria 
+$stmt = $pdo->query("SELECT n.id, n.titulo, n.slug, n.status, n.visualizacoes, n.criado_em, 
+                            COALESCE(c.nome, 'Sem Categoria') as categoria, 
+                            COALESCE(u.nome, n.autor_nome, 'Redação') as autor_nome 
                      FROM noticias n 
-                     JOIN categorias c ON n.categoria_id = c.id 
+                     LEFT JOIN categorias c ON n.categoria_id = c.id 
+                     LEFT JOIN usuarios u ON n.autor_id = u.id 
                      ORDER BY n.criado_em DESC LIMIT $limit OFFSET $offset");
 $noticias = $stmt->fetchAll();
 ?>
@@ -54,6 +57,7 @@ $noticias = $stmt->fetchAll();
                     <th>ID</th>
                     <th>Título</th>
                     <th>Categoria</th>
+                    <th>Autor</th>
                     <th>Status</th>
                     <th>Views</th>
                     <th>Data</th>
@@ -66,6 +70,7 @@ $noticias = $stmt->fetchAll();
                     <td><?= $item['id'] ?></td>
                     <td><?= escape($item['titulo']) ?></td>
                     <td><?= escape($item['categoria']) ?></td>
+                    <td><span style="font-size: 0.85rem; color: var(--admin-text-light);"><i class="fas fa-user-edit"></i> <?= escape($item['autor_nome']) ?></span></td>
                     <td>
                         <span class="badge <?= $item['status'] == 'publicado' ? 'badge-success' : 'badge-warning' ?>">
                             <?= ucfirst($item['status']) ?>
