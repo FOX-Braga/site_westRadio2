@@ -64,7 +64,7 @@ if ($slug === 'ultimas-noticias') {
     $total = $stmtCount->fetch()['total'];
     $total_pages = ceil($total / $limit);
 
-    $stmtNoticias = $pdo->prepare("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
+    $stmtNoticias = $pdo->prepare("SELECT " . newsCardColumns() . ", c.nome as categoria_nome, c.slug as categoria_slug
                                    FROM noticias n 
                                    JOIN categorias c ON n.categoria_id = c.id 
                                    WHERE n.status = 'publicado' 
@@ -76,7 +76,7 @@ if ($slug === 'ultimas-noticias') {
     $total = $stmtCount->fetch()['total'];
     $total_pages = ceil($total / $limit);
 
-    $stmtNoticias = $pdo->prepare("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
+    $stmtNoticias = $pdo->prepare("SELECT " . newsCardColumns() . ", c.nome as categoria_nome, c.slug as categoria_slug
                                    FROM noticias n 
                                    JOIN categorias c ON n.categoria_id = c.id 
                                    WHERE n.categoria_id = ? AND n.status = 'publicado' 
@@ -100,7 +100,7 @@ require_once __DIR__ . '/includes/header.php';
         <div class="news-card-v">
             <a href="<?= BASE_URL ?>/noticia/<?= escape($item['slug']) ?>">
                 <div class="img-wrapper">
-                    <img src="<?= $item['imagem_destacada'] ? (str_starts_with($item['imagem_destacada'], 'data:') ? $item['imagem_destacada'] : BASE_URL . '/uploads/noticias/' . $item['imagem_destacada']) : 'https://placehold.co/600x400/eeeeee/999999?text=Sem+Imagem' ?>" alt="<?= escape($item['titulo']) ?>" loading="lazy">
+                    <img src="<?= escape(newsImageUrl($item['imagem_destacada'], $item['id'])) ?>" alt="<?= escape($item['titulo']) ?>" loading="lazy">
                 </div>
                 <span class="tag" style="color: <?= escape($categoria['cor']) ?>"><?= escape($item['categoria_nome']) ?></span>
                 <h3><?= escape($item['titulo']) ?></h3>

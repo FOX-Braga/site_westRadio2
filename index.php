@@ -37,7 +37,7 @@ $page_title = "Home";
 require_once __DIR__ . '/includes/header.php';
 
 // Busca Destaques Principais
-$stmt = $pdo->query("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug, 
+$stmt = $pdo->query("SELECT " . newsCardColumns() . ", c.nome as categoria_nome, c.slug as categoria_slug,
                             COALESCE(u.nome, n.autor_nome, 'Redação') as autor_nome 
                      FROM noticias n 
                      LEFT JOIN categorias c ON n.categoria_id = c.id 
@@ -48,23 +48,15 @@ $destaques = $stmt->fetchAll();
 $noticia_destaque_principal = $destaques[0] ?? null;
 $sub_destaques = array_slice($destaques, 1, 3);
 
-// Busca Últimas Notícias (20 matérias)
-$stmt = $pdo->query("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
-                  FROM noticias n LEFT JOIN categorias c ON n.categoria_id = c.id 
-                  WHERE n.status = 'publicado' ORDER BY n.criado_em DESC LIMIT 20");
-$todas_ultimas = $stmt->fetchAll();
-
 // Busca Destaques da Manhã (04:00 às 12:59)
-$stmtManha = $pdo->query("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
-                          FROM noticias n LEFT JOIN categorias c ON n.categoria_id = c.id 
+$stmtManha = $pdo->query("SELECT n.titulo, n.slug, n.criado_em FROM noticias n
                           WHERE n.status = 'publicado' 
                           AND SUBSTR(n.criado_em, 12, 2) >= '04' AND SUBSTR(n.criado_em, 12, 2) <= '12'
                           ORDER BY n.criado_em DESC LIMIT 10");
 $destaques_manha = $stmtManha->fetchAll();
 
 // Busca Destaques da Tarde (13:00 às 19:59)
-$stmtTarde = $pdo->query("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
-                          FROM noticias n LEFT JOIN categorias c ON n.categoria_id = c.id 
+$stmtTarde = $pdo->query("SELECT n.titulo, n.slug, n.criado_em FROM noticias n
                           WHERE n.status = 'publicado' 
                           AND SUBSTR(n.criado_em, 12, 2) >= '13' AND SUBSTR(n.criado_em, 12, 2) <= '19'
                           ORDER BY n.criado_em DESC LIMIT 10");
@@ -74,7 +66,7 @@ $destaques_tarde = $stmtTarde->fetchAll();
 $categories_slugs = ['mundo', 'politica', 'economia', 'cultura', 'tecnologia', 'saude', 'esportes', 'opiniao'];
 $sections_data = [];
 foreach ($categories_slugs as $slug) {
-    $stmt = $pdo->prepare("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug, 
+    $stmt = $pdo->prepare("SELECT " . newsCardColumns() . ", c.nome as categoria_nome, c.slug as categoria_slug,
                                   COALESCE(u.nome, n.autor_nome, 'Redação') as autor_nome, 
                                   u.foto_perfil as autor_foto 
                            FROM noticias n LEFT JOIN categorias c ON n.categoria_id = c.id 
@@ -84,11 +76,7 @@ foreach ($categories_slugs as $slug) {
     $sections_data[$slug] = $stmt->fetchAll();
 }
 
-function renderImage($img) {
-    if (!$img) return 'https://placehold.co/600x400/eeeeee/999999?text=Sem+Imagem';
-    if (str_starts_with($img, 'data:')) return $img;
-    return BASE_URL . '/uploads/noticias/' . $img;
-}
+function renderImage($img, $id) { return newsImageUrl($img, $id); }
 ?>
 
 <div class="container" style="padding-top: 30px;">
@@ -100,7 +88,7 @@ function renderImage($img) {
             <!-- Manchete Principal -->
             <div class="hero-main">
                 <a href="<?= BASE_URL ?>/noticia/<?= escape($noticia_destaque_principal['slug']) ?>">
-                    <img src="<?= renderImage($noticia_destaque_principal['imagem_destacada']) ?>" alt="<?= escape($noticia_destaque_principal['titulo']) ?>" class="hero-img">
+                    <img src="<?= renderImage($noticia_destaque_principal['imagem_destacada'], $noticia_destaque_principal['id']) ?>" alt="<?= escape($noticia_destaque_principal['titulo']) ?>" class="hero-img">
                     <span class="hero-tag"><?= escape($noticia_destaque_principal['categoria_nome']) ?></span>
                     <h1><?= escape($noticia_destaque_principal['titulo']) ?></h1>
                     <p><?= escape($noticia_destaque_principal['subtitulo']) ?></p>
@@ -116,7 +104,7 @@ function renderImage($img) {
                 <?php foreach ($sub_destaques as $item): ?>
                 <div class="side-news">
                     <a href="<?= BASE_URL ?>/noticia/<?= escape($item['slug']) ?>">
-                        <img src="<?= renderImage($item['imagem_destacada']) ?>" alt="<?= escape($item['titulo']) ?>" class="side-news-img">
+                        <img loading="lazy" decoding="async" src="<?= renderImage($item['imagem_destacada'], $item['id']) ?>" alt="<?= escape($item['titulo']) ?>" class="side-news-img">
                         <span class="hero-tag" style="font-size: 0.7rem;"><?= escape($item['categoria_nome']) ?></span>
                         <h3><?= escape($item['titulo']) ?></h3>
                     </a>
@@ -179,7 +167,7 @@ function renderImage($img) {
             <?php foreach ($sections_data['mundo'] as $item): ?>
             <div class="news-card-v">
                 <a href="<?= BASE_URL ?>/noticia/<?= escape($item['slug']) ?>">
-                    <div class="img-wrapper"><img src="<?= renderImage($item['imagem_destacada']) ?>" alt=""></div>
+                    <div class="img-wrapper"><img loading="lazy" decoding="async" src="<?= renderImage($item['imagem_destacada'], $item['id']) ?>" alt=""></div>
                     <span class="tag"><?= escape($item['categoria_nome']) ?></span>
                     <h3><?= escape($item['titulo']) ?></h3>
                     <p><i class="far fa-clock"></i> <?= date('d/m/Y', strtotime($item['criado_em'])) ?></p>
@@ -206,7 +194,7 @@ function renderImage($img) {
             <?php foreach ($sections_data['economia'] as $item): ?>
             <div class="news-card-v">
                 <a href="<?= BASE_URL ?>/noticia/<?= escape($item['slug']) ?>">
-                    <div class="img-wrapper"><img src="<?= renderImage($item['imagem_destacada']) ?>" alt=""></div>
+                    <div class="img-wrapper"><img loading="lazy" decoding="async" src="<?= renderImage($item['imagem_destacada'], $item['id']) ?>" alt=""></div>
                     <span class="tag" style="color: #16a34a;"><?= escape($item['categoria_nome']) ?></span>
                     <h3><?= escape($item['titulo']) ?></h3>
                     <p><?= escape($item['subtitulo']) ?></p>
@@ -225,7 +213,7 @@ function renderImage($img) {
             <?php $main_cultura = $sections_data['cultura'][0]; $sub_cultura = array_slice($sections_data['cultura'], 1); ?>
             <div class="cultura-main">
                 <a href="<?= BASE_URL ?>/noticia/<?= escape($main_cultura['slug']) ?>">
-                    <img src="<?= renderImage($main_cultura['imagem_destacada']) ?>" alt="">
+                    <img loading="lazy" decoding="async" src="<?= renderImage($main_cultura['imagem_destacada'], $main_cultura['id']) ?>" alt="">
                     <div class="overlay">
                         <span class="tag" style="color: var(--color-accent); font-weight: 800; text-transform: uppercase; margin-bottom: 10px; display: block; font-family: var(--font-family); font-size: 0.8rem;"><?= escape($main_cultura['categoria_nome']) ?></span>
                         <h2><?= escape($main_cultura['titulo']) ?></h2>
@@ -236,7 +224,7 @@ function renderImage($img) {
                 <?php foreach ($sub_cultura as $item): ?>
                 <div class="cultura-list-item">
                     <a href="<?= BASE_URL ?>/noticia/<?= escape($item['slug']) ?>" style="display: flex; gap: 15px; align-items: center;">
-                        <img src="<?= renderImage($item['imagem_destacada']) ?>" alt="">
+                        <img loading="lazy" decoding="async" src="<?= renderImage($item['imagem_destacada'], $item['id']) ?>" alt="">
                         <div>
                             <span class="tag" style="font-size: 0.7rem; color: var(--color-primary); font-weight: 800; text-transform: uppercase;"><?= escape($item['categoria_nome']) ?></span>
                             <h4><?= escape($item['titulo']) ?></h4>
@@ -264,7 +252,7 @@ function renderImage($img) {
             <?php foreach ($sections_data[$slug] as $item): ?>
             <div class="news-card-v">
                 <a href="<?= BASE_URL ?>/noticia/<?= escape($item['slug']) ?>">
-                    <div class="img-wrapper"><img src="<?= renderImage($item['imagem_destacada']) ?>" alt=""></div>
+                    <div class="img-wrapper"><img loading="lazy" decoding="async" src="<?= renderImage($item['imagem_destacada'], $item['id']) ?>" alt=""></div>
                     <span class="tag"><?= escape($item['categoria_nome']) ?></span>
                     <h3><?= escape($item['titulo']) ?></h3>
                     <p><i class="far fa-clock"></i> <?= date('d/m/Y', strtotime($item['criado_em'])) ?></p>

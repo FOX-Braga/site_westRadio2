@@ -98,3 +98,18 @@ function uploadImage($file, $subDir = '') {
 }
 
 
+
+/** Campos leves para cards; nunca transporta o corpo ou capas Base64 na listagem. */
+function newsCardColumns() {
+    return "n.id, n.titulo, n.subtitulo, n.slug, n.criado_em,
+            CASE WHEN SUBSTR(n.imagem_destacada, 1, 5) = 'data:'
+                 THEN '@image' ELSE n.imagem_destacada END AS imagem_destacada";
+}
+
+/** Compatibilidade com capas antigas em arquivo e capas Base64 no banco. */
+function newsImageUrl($image, $id) {
+    if (!$image) return 'https://placehold.co/600x400/eeeeee/999999?text=Sem+Imagem';
+    if ($image === '@image') return BASE_URL . '/imagem.php?id=' . (int) $id;
+    if (str_starts_with($image, 'data:')) return $image;
+    return BASE_URL . '/uploads/noticias/' . $image;
+}

@@ -7,45 +7,60 @@ $pdo = Database::getInstance();
 
 // Hook: Garante a coluna data_agendamento e publica posts agendados automaticamente
 try {
-    @$pdo->exec("ALTER TABLE noticias ADD COLUMN data_agendamento DATETIME DEFAULT NULL");
+    // Evita executar DDL e disputar bloqueios do banco a cada visita.
+    try {
+        $pdo->query("SELECT data_agendamento FROM noticias WHERE 1 = 0")->closeCursor();
+    } catch (PDOException $missingColumn) {
+        $pdo->exec("ALTER TABLE noticias ADD COLUMN data_agendamento DATETIME DEFAULT NULL");
+    }
 } catch(Exception $e) {}
 
 // Hook: Garante a criação da tabela de banners
 try {
-    $db_driver = DB_DRIVER ?? 'sqlite';
-    if ($db_driver === 'sqlite') {
-        $pdo->exec("CREATE TABLE IF NOT EXISTS banners (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            titulo VARCHAR(255) NOT NULL,
-            imagem VARCHAR(255) NOT NULL,
-            link VARCHAR(255) NOT NULL,
-            status VARCHAR(20) DEFAULT 'ativo',
-            criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
-        )");
-    } else if ($db_driver === 'mysql') {
-        $pdo->exec("CREATE TABLE IF NOT EXISTS banners (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            titulo VARCHAR(255) NOT NULL,
-            imagem VARCHAR(255) NOT NULL,
-            link VARCHAR(255) NOT NULL,
-            status VARCHAR(20) DEFAULT 'ativo',
-            criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
-        )");
-    } else if ($db_driver === 'pgsql') {
-        $pdo->exec("CREATE TABLE IF NOT EXISTS banners (
-            id SERIAL PRIMARY KEY,
-            titulo VARCHAR(255) NOT NULL,
-            imagem VARCHAR(255) NOT NULL,
-            link VARCHAR(255) NOT NULL,
-            status VARCHAR(20) DEFAULT 'ativo',
-            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )");
-    }
+    try {
+        $pdo->query('SELECT id FROM banners WHERE 1 = 0')->closeCursor();
+    } catch (PDOException $missingTable) {
+        $db_driver = DB_DRIVER ?? 'sqlite';
+        if ($db_driver === 'sqlite') {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS banners (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                titulo VARCHAR(255) NOT NULL,
+                imagem VARCHAR(255) NOT NULL,
+                link VARCHAR(255) NOT NULL,
+                status VARCHAR(20) DEFAULT 'ativo',
+                criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+            )");
+        } else if ($db_driver === 'mysql') {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS banners (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                titulo VARCHAR(255) NOT NULL,
+                imagem VARCHAR(255) NOT NULL,
+                link VARCHAR(255) NOT NULL,
+                status VARCHAR(20) DEFAULT 'ativo',
+                criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+            )");
+        } else if ($db_driver === 'pgsql') {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS banners (
+                id SERIAL PRIMARY KEY,
+                titulo VARCHAR(255) NOT NULL,
+                imagem VARCHAR(255) NOT NULL,
+                link VARCHAR(255) NOT NULL,
+                status VARCHAR(20) DEFAULT 'ativo',
+                criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )");
+        }
+        }
 } catch(Exception $e) {}
 
 if (isset($pdo)) {
     $now = date('Y-m-d H:i:s');
-    $pdo->prepare("UPDATE noticias SET status = 'publicado', data_agendamento = NULL, criado_em = ? WHERE status = 'rascunho' AND data_agendamento IS NOT NULL AND data_agendamento <= ?")->execute([$now, $now]);
+    $stmtDue = $pdo->prepare("SELECT id FROM noticias WHERE status = 'rascunho' AND data_agendamento IS NOT NULL AND data_agendamento <= ? LIMIT 1");
+    $stmtDue->execute([$now]);
+    $hasDue = $stmtDue->fetchColumn() !== false;
+    $stmtDue->closeCursor();
+    if ($hasDue) {
+        $pdo->prepare("UPDATE noticias SET status = 'publicado', data_agendamento = NULL, criado_em = ? WHERE status = 'rascunho' AND data_agendamento IS NOT NULL AND data_agendamento <= ?")->execute([$now, $now]);
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -86,7 +101,7 @@ if (isset($pdo)) {
     
     <!-- CSS Principal -->
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css?v=<?= filemtime(__DIR__ . '/../assets/css/style.css') ?>">
-    <script type="module" src="https://cdn.skypack.dev/@hotwired/turbo"></script>
+    <script type="module" src="<?= BASE_URL ?>/assets/js/turbo.es2017-esm.js?v=8.0.23"></script>
 </head>
 <body>
 

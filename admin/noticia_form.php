@@ -155,7 +155,7 @@ if (!$categoria_id_pre && $cat_slug_pre) {
             <a href="noticias.php" class="btn btn-outline" style="padding: 8px 16px;"><i class="fas fa-arrow-left" style="margin-right: 5px;"></i> Voltar para Lista</a>
         </div>
 
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+        <div class="editor-layout">
             
             <!-- Coluna Esquerda: Conteúdo -->
             <div style="display: flex; flex-direction: column; gap: 25px;">
