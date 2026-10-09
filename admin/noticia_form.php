@@ -19,8 +19,12 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
 requirePanelAccess();
 require_once __DIR__ . '/../includes/editorial_uploads.php';
+require_once __DIR__ . '/../includes/news_queries.php';
 
 $pdo = Database::getInstance();
+$hasAuthorName = newsHasColumn($pdo, 'autor_nome');
+$hasUrgent = newsHasColumn($pdo, 'urgente');
+$hasSchedule = newsHasColumn($pdo, 'data_agendamento');
 
 $id = $_GET['id'] ?? null;
 $noticia = null;
@@ -63,6 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data_agendamento = !empty($_POST['data_agendamento']) ? date('Y-m-d H:i:s', strtotime($_POST['data_agendamento'])) : null;
     $destaque = isAdmin() ? (isset($_POST['destaque']) ? 1 : 0) : (int) ($noticia['destaque'] ?? 0);
     $urgente = isAdmin() ? (isset($_POST['urgente']) ? 1 : 0) : (int) ($noticia['urgente'] ?? 0);
+    if ($data_agendamento !== null && !$hasSchedule) $erro = 'O banco ainda nao possui suporte a agendamento. Remova a data para publicar agora.';
+    if ($urgente && !$hasUrgent) $erro = 'O banco ainda nao possui suporte a noticias urgentes. Desmarque essa opcao para salvar.';
     $slug = createSlug($titulo);
     
     // Garantir que o slug seja único
@@ -85,11 +91,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } catch (RuntimeException $error) { $erro = $error->getMessage(); }
     if (empty($erro)) {
-        // Se a notícia atual for marcada como destaque, remove o destaque das outras
-        if (isAdmin() && $destaque == 1) {
-            $pdo->query("UPDATE noticias SET destaque = 0");
-        }
-
         $autor_id_post = null;
         if (isAdmin() && isset($_POST['autor_id'])) {
             $autor_id_post = !empty($_POST['autor_id']) ? (int)$_POST['autor_id'] : null;
@@ -108,28 +109,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $autor_nome_post = $noticia['autor_nome'] ?? $_SESSION['user_nome'] ?? 'Redação';
         }
 
-        if ($id) {
-            try {
-                $stmt = $pdo->prepare("UPDATE noticias SET titulo=?, subtitulo=?, slug=?, conteudo=?, imagem_destacada=?, autor_id=?, autor_nome=?, categoria_id=?, status=?, destaque=?, urgente=?, data_agendamento=? WHERE id=?");
-                $stmt->execute([$titulo, $subtitulo, $slug, $conteudo, $imagem_destacada, $autor_id_post, $autor_nome_post, $categoria_id, $status, $destaque, $urgente, $data_agendamento, $id]);
-                if ($contentToken !== '') editorialConsumeUpload($contentToken, 'content');
-                if ($coverToken !== '') editorialConsumeUpload($coverToken, 'cover');
-                header("Location: noticias.php");
-                exit;
-            } catch (PDOException $e) {
-                $erro = "Erro ao atualizar no banco: " . $e->getMessage();
+        // Apenas campos existentes entram no INSERT/UPDATE; bancos antigos continuam funcionando.
+        $values = [
+            'titulo'=>$titulo, 'subtitulo'=>$subtitulo, 'slug'=>$slug, 'conteudo'=>$conteudo,
+            'imagem_destacada'=>$imagem_destacada, 'autor_id'=>$autor_id_post,
+            'categoria_id'=>$categoria_id, 'status'=>$status, 'destaque'=>$destaque,
+        ];
+        if ($hasAuthorName) $values['autor_nome'] = $autor_nome_post;
+        if ($hasUrgent) $values['urgente'] = $urgente;
+        if ($hasSchedule) $values['data_agendamento'] = $data_agendamento;
+        try {
+            $pdo->beginTransaction();
+            if (isAdmin() && $destaque == 1) $pdo->exec("UPDATE noticias SET destaque = 0");
+            if ($id) {
+                $assignments = implode(', ', array_map(function ($column) { return $column . '=?'; }, array_keys($values)));
+                $stmt = $pdo->prepare("UPDATE noticias SET $assignments WHERE id=?");
+                $stmt->execute(array_merge(array_values($values), [$id]));
+            } else {
+                $columns = implode(', ', array_keys($values));
+                $placeholders = implode(', ', array_fill(0, count($values), '?'));
+                $stmt = $pdo->prepare("INSERT INTO noticias ($columns) VALUES ($placeholders)");
+                $stmt->execute(array_values($values));
             }
-        } else {
-            try {
-                $stmt = $pdo->prepare("INSERT INTO noticias (titulo, subtitulo, slug, conteudo, imagem_destacada, autor_id, autor_nome, categoria_id, status, destaque, urgente, data_agendamento) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([$titulo, $subtitulo, $slug, $conteudo, $imagem_destacada, $autor_id_post, $autor_nome_post, $categoria_id, $status, $destaque, $urgente, $data_agendamento]);
-                if ($contentToken !== '') editorialConsumeUpload($contentToken, 'content');
-                if ($coverToken !== '') editorialConsumeUpload($coverToken, 'cover');
-                header("Location: noticias.php");
-                exit;
-            } catch (PDOException $e) {
-                $erro = "Erro ao inserir no banco: " . $e->getMessage();
-            }
+            $pdo->commit();
+        } catch (PDOException $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            error_log('Falha ao salvar noticia: ' . $e->getMessage());
+            $erro = 'Nao foi possivel salvar a materia. O erro foi registrado no log da hospedagem.';
+        }
+        if (empty($erro)) {
+            if ($contentToken !== '') editorialConsumeUpload($contentToken, 'content');
+            if ($coverToken !== '') editorialConsumeUpload($coverToken, 'cover');
+            header("Location: noticias.php");
+            exit;
         }
     }
 }
@@ -146,7 +158,7 @@ if (isAdmin()) {
 $autor_id_pre = $_GET['autor_id'] ?? ($noticia['autor_id'] ?? $_SESSION['user_id']);
 
 $cat_slug_pre = $_GET['cat_slug'] ?? '';
-$categoria_id_pre = $noticia['categoria_id'] ?? '';
+$categoria_id_pre = $_POST['categoria_id'] ?? $noticia['categoria_id'] ?? '';
 if (!$categoria_id_pre && $cat_slug_pre) {
     $stmt = $pdo->prepare("SELECT id FROM categorias WHERE slug = ?");
     $stmt->execute([$cat_slug_pre]);
@@ -318,7 +330,7 @@ if (!$categoria_id_pre && $cat_slug_pre) {
 
                 <div class="form-group" style="margin-bottom: 0;">
                     <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; margin: 0;">
-                        <input type="checkbox" name="urgente" <?= ($noticia && $noticia['urgente']) ? 'checked' : '' ?> style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--adm-accent);">
+                        <input type="checkbox" name="urgente" <?= ($noticia && ($noticia['urgente'] ?? 0)) ? 'checked' : '' ?> style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--adm-accent);">
                         <div>
                             <span style="font-weight: 700; color: var(--adm-accent); font-size: 0.9rem;">Alerta de Plantão (Urgente)</span>
                             <span style="display: block; font-size: 0.75rem; color: var(--adm-text-muted); font-weight: normal; margin-top: 2px;">
