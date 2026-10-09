@@ -25,7 +25,7 @@ if ($deleteId !== null) {
             exit;
         } catch (Throwable $e) {
             error_log('Falha ao excluir usuario: ' . $e->getMessage());
-            $erro = 'Nao foi possivel excluir o usuario. Nenhuma materia foi apagada. Consulte o log da hospedagem.';
+            $erro = editorialDeleteError($e);
         }
     }
 }

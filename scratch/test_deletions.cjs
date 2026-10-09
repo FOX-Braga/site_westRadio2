@@ -36,7 +36,7 @@ const formBody=extra=>new URLSearchParams({csrf_token:'permissions-test-token',t
 
 (async()=>{try{
 for(let i=0;i<50;i++){try{await request('noticias.php');break}catch{await new Promise(r=>setTimeout(r,100))}}
-php(db+"$db->exec('DROP TABLE comentarios');$db->exec('DROP TABLE curtidas');$db->exec('CREATE TABLE comentarios(id INTEGER PRIMARY KEY,noticia_id INTEGER,usuario_id INTEGER,conteudo TEXT,status TEXT,FOREIGN KEY(noticia_id) REFERENCES noticias(id) ON DELETE RESTRICT,FOREIGN KEY(usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT)');$db->exec('CREATE TABLE curtidas(id INTEGER PRIMARY KEY,noticia_id INTEGER,usuario_id INTEGER,FOREIGN KEY(noticia_id) REFERENCES noticias(id) ON DELETE RESTRICT,FOREIGN KEY(usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT)');$db->exec(\"INSERT INTO comentarios VALUES (1,2,2,'Comentario','pendente'),(2,2,1,'Admin','pendente');INSERT INTO curtidas VALUES (1,2,2),(2,2,1)\");$db->exec('ALTER TABLE noticias DROP COLUMN autor_nome');");
+php(db+"$db->exec('DROP TABLE comentarios');$db->exec('DROP TABLE curtidas');$db->exec('CREATE TABLE comentarios(id INTEGER PRIMARY KEY,noticia_id INTEGER,usuario_id INTEGER,conteudo TEXT,status TEXT,FOREIGN KEY(noticia_id) REFERENCES noticias(id) ON DELETE RESTRICT,FOREIGN KEY(usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT)');$db->exec('CREATE TABLE curtidas(id INTEGER PRIMARY KEY,noticia_id INTEGER,usuario_id INTEGER,FOREIGN KEY(noticia_id) REFERENCES noticias(id) ON DELETE RESTRICT,FOREIGN KEY(usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT)');$db->exec(\"INSERT INTO comentarios VALUES (1,2,2,'Comentario','pendente'),(2,2,1,'Admin','pendente');INSERT INTO curtidas VALUES (1,2,2),(2,2,1)\");$db->exec('ALTER TABLE noticias DROP COLUMN autor_nome');$db->exec('DROP TABLE chat_mensagens');$db->exec('CREATE TABLE chat_mensagens(id INTEGER PRIMARY KEY,user_id INTEGER NOT NULL,FOREIGN KEY(user_id) REFERENCES usuarios(id) ON DELETE RESTRICT)');$db->exec('INSERT INTO chat_mensagens VALUES(1,2)');");
 const scalar=sql=>php(db+'echo $db->query('+quote(sql)+')->fetchColumn();');
 const postDelete=(route,id,user=1,token='permissions-test-token')=>request(route,user,{method:'POST',body:new URLSearchParams({delete:String(id),csrf_token:token})});
 let r=await postDelete('usuarios.php',2,1,'invalido');check(r.status===403&&scalar('SELECT COUNT(*) FROM usuarios WHERE id=2')==='1','CSRF invalido nao exclui usuario');
@@ -46,6 +46,7 @@ r=await postDelete('noticias.php',1,2);check(r.status===403,'Jornalista nao excl
 r=await postDelete('usuarios.php',1);check(r.status===200&&scalar('SELECT COUNT(*) FROM usuarios WHERE id=1')==='1','Nao permite excluir a propria conta');
 r=await postDelete('usuarios.php?filter=colunista',2);check(r.status===302&&r.headers.get('location').includes('filter=colunista'),'Exclusao de usuario redireciona antes de enviar HTML');
 check(scalar('SELECT COUNT(*) FROM usuarios WHERE id=2')==='0','Usuario excluido no banco antigo sem autor_nome');
+check(scalar('SELECT COUNT(*) FROM chat_mensagens')==='0','Chat antigo com user_id obrigatorio nao bloqueia exclusao');
 check(scalar('SELECT COUNT(*) FROM noticias')==='2'&&scalar('SELECT autor_id IS NULL FROM noticias WHERE id=1')==='1','Todas as noticias preservadas e autor desvinculado');
 check(scalar('SELECT COUNT(*) FROM comentarios WHERE usuario_id=2')==='0'&&scalar('SELECT COUNT(*) FROM curtidas WHERE usuario_id=2')==='0','Dependencias RESTRICT do usuario removidas');
 php(db+"$db->exec('ALTER TABLE noticias ADD COLUMN autor_nome TEXT');$db->exec(\"CREATE TRIGGER reject_user BEFORE DELETE ON usuarios WHEN OLD.id=3 BEGIN SELECT RAISE(ABORT,'falha usuario teste');END\");");
@@ -58,6 +59,8 @@ php(db+"$db->exec('DROP TRIGGER reject_news');");
 r=await postDelete('noticias.php',2);check(r.status===302&&scalar('SELECT COUNT(*) FROM noticias WHERE id=2')==='0','Noticia com dependencias RESTRICT excluida');
 check(scalar('SELECT COUNT(*) FROM comentarios WHERE noticia_id=2')==='0'&&scalar('SELECT COUNT(*) FROM curtidas WHERE noticia_id=2')==='0','Dependencias da noticia excluidas');
 check(scalar('SELECT COUNT(*) FROM usuarios WHERE id=1')==='1'&&scalar('SELECT COUNT(*) FROM noticias WHERE id=1')==='1','Excluir noticia preserva usuarios e outras noticias');
+php(db+"$db->exec('DROP TABLE chat_mensagens');$db->exec('CREATE TABLE chat_mensagens(id INTEGER PRIMARY KEY,nome TEXT)');");
+r=await postDelete('usuarios.php',4);check(r.status===302,'Tabela de chat sem vinculo com usuario nao bloqueia exclusao');
 php(db+"$db->exec('DROP TABLE curtidas');$db->exec('DROP TABLE chat_mensagens');");
 r=await postDelete('noticias.php',1);check(r.status===302,'Exclusao funciona com tabelas opcionais ausentes');
 console.log('TESTES DE EXCLUSAO APROVADOS. Banco real nao foi alterado.');
