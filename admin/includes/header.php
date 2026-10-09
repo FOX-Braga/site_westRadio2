@@ -72,15 +72,15 @@ $userInitial = strtoupper(substr($userNome, 0, 1));
                 <li>
                     <a href="<?= BASE_URL ?>/admin/noticias.php" class="<?= in_array($curPage, ['noticias.php', 'noticia_form.php']) ? 'active' : '' ?>">
                         <i class="fas fa-newspaper"></i>
-                        <span>Notícias</span>
+                        <span><?= isAdmin() ? 'Notícias' : 'Minhas matérias' ?></span>
                     </a>
-                </li>
+                </li><?php if (isAdmin()): ?>
                 <li>
                     <a href="<?= BASE_URL ?>/admin/videos.php" class="<?= $curPage === 'videos.php' ? 'active' : '' ?>">
                         <i class="fas fa-play-circle"></i>
                         <span>Vídeos & Lives</span>
                     </a>
-                </li>
+                </li><?php endif; ?>
             </ul>
 
             <?php if (isAdmin()): ?>

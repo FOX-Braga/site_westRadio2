@@ -1,11 +1,16 @@
 <?php
 $page_title = "Gerenciar Notícias";
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/auth.php';
+requirePanelAccess();
+$page_title = isJornalista() ? 'Minhas matérias' : 'Gerenciar Notícias';
 
 $pdo = Database::getInstance();
 
 // Lógica de exclusão de notícia (Apenas no painel de notícias!)
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
+    requireAdmin();
     if (!validateCsrfToken($_GET['token'] ?? '')) die("Acesso Negado (CSRF).");
     $id = (int)$_GET['delete'];
     
@@ -29,6 +34,10 @@ $statusFilter = $_GET['status'] ?? 'all';
 
 $whereClauses = [];
 $params = [];
+if (isJornalista()) {
+    $whereClauses[] = "n.autor_id = ?";
+    $params[] = (int) $_SESSION['user_id'];
+}
 
 if ($search !== '') {
     $whereClauses[] = "(n.titulo LIKE ? OR n.slug LIKE ?)";
@@ -67,13 +76,14 @@ $query = "SELECT n.id, n.titulo, n.slug, n.status, n.visualizacoes, n.criado_em,
 $stmt = $pdo->prepare($query);
 $stmt->execute($params);
 $noticias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+require_once __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Header da Página -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
     <div>
         <h2 style="font-size: 1.4rem; font-weight: 800; margin: 0; color: var(--adm-text-main);">
-            Acervo de Matérias
+            <?= isAdmin() ? 'Acervo de Matérias' : 'Minhas matérias' ?>
         </h2>
         <p style="margin: 4px 0 0 0; color: var(--adm-text-muted); font-size: 0.875rem;">
             <?= $total ?> <?= $total === 1 ? 'matéria encontrada' : 'matérias encontradas' ?>
@@ -211,9 +221,9 @@ $noticias = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <a href="noticia_form.php?id=<?= $item['id'] ?>" class="btn btn-sm btn-outline btn-icon" title="Editar">
                                 <i class="fas fa-pen"></i>
                             </a>
-                            <a href="noticias.php?delete=<?= $item['id'] ?>&token=<?= getCsrfToken() ?>" class="btn btn-sm btn-outline btn-icon btn-danger" onclick="return confirm('Tem certeza que deseja excluir esta matéria? Ela será removida permanentemente do portal.')" title="Excluir">
+                            <?php if (isAdmin()): ?><a href="noticias.php?delete=<?= $item['id'] ?>&token=<?= getCsrfToken() ?>" class="btn btn-sm btn-outline btn-icon btn-danger" onclick="return confirm('Tem certeza que deseja excluir esta matéria? Ela será removida permanentemente do portal.')" title="Excluir">
                                 <i class="fas fa-trash"></i>
-                            </a>
+                            </a><?php endif; ?>
                         </td>
                     </tr>
                     <?php endforeach; ?>

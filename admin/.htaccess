@@ -1,25 +1,9 @@
-# ============================================================
-# Painel Administrativo 96 News - Regras do Servidor
-# Prevenção de Erro 406 (Not Acceptable) e Segurança
-# ============================================================
-
-# Desativa MultiViews para evitar erros de negociação de conteúdo (HTTP 406)
-<IfModule mod_negotiation.c>
-    Options -MultiViews
-</IfModule>
-
-Options -Indexes
-
-# Desativa inspeção de POST do ModSecurity para permitir submissão de HTML editorial
-<IfModule mod_security.c>
-    SecFilterEngine Off
-    SecFilterScanPOST Off
-</IfModule>
-
-<IfModule mod_security2.c>
-    SecRuleEngine Off
-    SecRequestBodyAccess Off
-</IfModule>
-
-# Forçar cabeçalho padrão
+# Painel: somente diretivas permitidas em .htaccess.
+# ModSecurity e os limites PHP sao gerenciados pela hospedagem e pelo .user.ini.
+Options -Indexes -MultiViews
 AddDefaultCharset UTF-8
+
+# URLs inexistentes do painel nao devem cair na home publica.
+<IfModule mod_dir.c>
+    FallbackResource disabled
+</IfModule>

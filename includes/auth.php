@@ -10,6 +10,8 @@ if (isset($_SESSION['user_id'])) {
     $tipo = $stmt->fetchColumn();
     if ($tipo) {
         $_SESSION['user_tipo'] = $tipo;
+    } else {
+        unset($_SESSION['user_id'], $_SESSION['user_tipo'], $_SESSION['user_nome'], $_SESSION['user_foto']);
     }
 }
 
@@ -37,19 +39,34 @@ function hasPanelAccess() {
 }
 
 function requireAdmin() {
+    requireLogin();
     if (!isAdmin()) {
-        header("Location: " . BASE_URL . "/login.php");
-        exit;
+        denyPanelAccess();
     }
+}
+
+function denyPanelAccess() {
+    http_response_code(403);
+    exit('Acesso negado. Seu cargo não permite esta ação.');
 }
 
 function requirePanelAccess() {
-    if (!hasPanelAccess()) {
-        header("Location: " . BASE_URL . "/login.php");
-        exit;
+    requireLogin();
+    if (!hasPanelAccess()) denyPanelAccess();
+    // Lista explicita: novas paginas administrativas nao ficam liberadas por acidente.
+    $page = basename($_SERVER['SCRIPT_NAME'] ?? $_SERVER['PHP_SELF'] ?? '');
+    if (isJornalista() && !in_array($page, ['index.php', 'noticias.php', 'noticia_form.php', 'upload.php'], true)) {
+        denyPanelAccess();
     }
 }
 
+function requireNewsAccess($id) {
+    $stmt = Database::getInstance()->prepare('SELECT autor_id FROM noticias WHERE id = ?');
+    $stmt->execute([$id]);
+    $news = $stmt->fetch();
+    if (!$news) { http_response_code(404); exit('Matéria não encontrada.'); }
+    if (!isAdmin() && (int) $news['autor_id'] !== (int) $_SESSION['user_id']) denyPanelAccess();
+}
 function loginUser($user) {
     session_regenerate_id(true); // Previne Session Fixation
     $_SESSION['user_id'] = $user['id'];

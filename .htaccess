@@ -1,23 +1,14 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    # Bloqueia acesso HTTP aos arquivos internos, sem afetar includes do PHP.
+    RewriteRule ^(?:config|includes|admin/includes|scratch|\.git|\.agents|\.codex|\.aws)(?:/|$) - [F,L,NC]
+
     # Evita listagem de diretórios e conflitos de MultiViews (que causam erro 404 e 406)
     Options -Indexes -MultiViews
 </IfModule>
 
-# ============================================================
-# Correção do Erro 406 (ModSecurity / SecFilter / WAF)
-# Permite publicação de notícias com formatação HTML sem bloqueio
-# ============================================================
-<IfModule mod_security.c>
-    SecFilterEngine Off
-    SecFilterScanPOST Off
-</IfModule>
-
-<IfModule mod_security2.c>
-    SecRuleEngine Off
-    SecRequestBodyAccess Off
-</IfModule>
+# ModSecurity e gerenciado pela hospedagem; nao desativar via .htaccess.
 
 <IfModule mod_negotiation.c>
     Options -MultiViews
@@ -49,7 +40,9 @@
     RewriteRule ^sitemap\.xml$ sitemap.php [L]
 
     # Fallback de contingência
-    FallbackResource index.php
+    <IfModule mod_dir.c>
+        FallbackResource /index.php
+    </IfModule>
 </IfModule>
 
 # Otimização de Performance: Compressão GZIP / Brotli
@@ -72,12 +65,14 @@
 
 # Proteção de Arquivos Sensíveis
 <FilesMatch "\.(sql|ini|env|md|log|sqlite)$">
-    Order allow,deny
-    Deny from all
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
 </FilesMatch>
 
 # Bloquear acesso aos diretórios internos
-<DirectoryMatch "^.*/(config|includes)/">
-    Order Deny,Allow
-    Deny from All
-</DirectoryMatch>
+# DirectoryMatch nao e permitido em .htaccess. O bloqueio fica nas regras acima.

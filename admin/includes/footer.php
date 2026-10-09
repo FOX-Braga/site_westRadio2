@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 2. Inicialização do Editor Rico Quill (se existir o container na página)
     const editorContainer = document.querySelector('#editor-container');
-    if (editorContainer) {
+    if (editorContainer && !document.querySelector('#form-noticia[data-upload-url]')) {
         const quill = new Quill('#editor-container', {
             theme: 'snow',
             placeholder: 'Escreva a matéria jornalística com clareza, parágrafos bem espaçados e citações...',
@@ -80,23 +80,26 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    let preview = document.querySelector('#image-preview-target');
-                    if (!preview) {
-                        const previewWrapper = document.querySelector('.image-preview-wrapper');
-                        if (previewWrapper) {
-                            previewWrapper.innerHTML = `<img id="image-preview-target" src="${evt.target.result}" style="width: 100%; max-height: 240px; object-fit: cover; border-radius: 8px; border: 1px solid var(--adm-border); margin-bottom: 12px; display: block;">`;
-                        }
-                    } else {
-                        preview.src = evt.target.result;
+                if (input.dataset.previewUrl) URL.revokeObjectURL(input.dataset.previewUrl);
+                const previewUrl = URL.createObjectURL(file);
+                input.dataset.previewUrl = previewUrl;
+                let preview = document.querySelector('#image-preview-target');
+                if (!preview) {
+                    const wrapper = document.querySelector('.image-preview-wrapper');
+                    if (wrapper) {
+                        preview = document.createElement('img');
+                        preview.id = 'image-preview-target';
+                        preview.alt = 'Prévia da foto de capa';
+                        preview.style.cssText = 'width:100%;max-height:240px;object-fit:cover;border-radius:8px;margin-bottom:12px;display:block';
+                        wrapper.replaceChildren(preview);
                     }
-                };
-                reader.readAsDataURL(file);
+                }
+                if (preview) preview.src = previewUrl;
             }
         });
     });
 });
 </script>
+<script src="<?= BASE_URL ?>/assets/js/editor-media.js?v=1"></script>
 </body>
 </html>

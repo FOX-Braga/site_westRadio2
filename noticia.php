@@ -144,6 +144,7 @@ require_once __DIR__ . '/includes/header.php';
 .article-content { font-family: var(--font-family); font-size: 1.15rem; line-height: 1.8; color: var(--color-text); margin-bottom: 50px; }
 .article-content p { margin-bottom: 25px; }
 .article-content h2, .article-content h3 { font-family: var(--font-title); margin: 40px 0 20px; }
+.article-content video, .article-content iframe { width:100%; max-width:100%; min-height:240px; margin:20px 0; }
 .article-content img { border-radius: 4px; margin: 20px 0; }
 .article-content blockquote { border-left: 4px solid var(--color-primary); padding-left: 20px; font-style: italic; color: var(--color-text-muted); margin: 30px 0; }
 

@@ -1,4 +1,16 @@
 <?php
+// O PHP esvazia POST/FILES quando o corpo excede post_max_size, antes do CSRF.
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+    $postLimit = trim(ini_get('post_max_size'));
+    $unit = strtolower(substr($postLimit, -1));
+    $multipliers = ['k'=>1024, 'm'=>1048576, 'g'=>1073741824];
+    $limitBytes = (float) $postLimit * ($multipliers[$unit] ?? 1);
+    if ($limitBytes > 0 && (float) ($_SERVER['CONTENT_LENGTH'] ?? 0) > $limitBytes) {
+        http_response_code(413);
+        header('Content-Type: text/plain; charset=utf-8');
+        exit('O envio excedeu o limite de ' . $postLimit . ' do servidor. Reduza as imagens ou o conteúdo e tente novamente.');
+    }
+}
 $page_title = isset($_GET['id']) ? "Editar Matéria" : "Nova Matéria";
 
 // Incluir conexões básicas antes do HTML para poder fazer redirects
@@ -6,6 +18,7 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
 requirePanelAccess();
+require_once __DIR__ . '/../includes/editorial_uploads.php';
 
 $pdo = Database::getInstance();
 
@@ -13,6 +26,7 @@ $id = $_GET['id'] ?? null;
 $noticia = null;
 
 if ($id) {
+    requireNewsAccess($id);
     $stmt = $pdo->prepare("SELECT * FROM noticias WHERE id = ?");
     $stmt->execute([$id]);
     $noticia = $stmt->fetch();
@@ -23,23 +37,32 @@ $erro = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrf_token = $_POST['csrf_token'] ?? '';
     if (!validateCsrfToken($csrf_token)) {
+        http_response_code(403);
         die("Erro de segurança (CSRF). Ação não permitida.");
     }
     $titulo = trim($_POST['titulo']);
     $subtitulo = trim($_POST['subtitulo']);
     $categoria_id = $_POST['categoria_id'];
     
-    // Suporte à decodificação Base64 para contornar ModSecurity / SecFilter de hospedagens (Erro 406)
-    if (!empty($_POST['conteudo_b64'])) {
-        $conteudo = base64_decode($_POST['conteudo_b64']);
-    } else {
-        $conteudo = $_POST['conteudo'] ?? '';
-    }
-
+    $contentToken = $_POST['conteudo_token'] ?? '';
+    $coverToken = $_POST['imagem_token'] ?? '';
+    try {
+        if ($contentToken !== '') {
+            editorialReadUpload($contentToken, 'content');
+            $conteudo = file_get_contents(editorialUploadPath($contentToken) . '.part');
+            if ($conteudo === false) throw new RuntimeException('Não foi possível ler o texto enviado.');
+        } elseif (!empty($_POST['conteudo_b64'])) {
+            // Compatibilidade com formularios antigos, sem desativar CSRF.
+            $conteudo = base64_decode($_POST['conteudo_b64'], true);
+            if ($conteudo === false) throw new RuntimeException('O texto recebido está incompleto. Tente novamente.');
+        } else {
+            $conteudo = $_POST['conteudo'] ?? '';
+        }
+    } catch (RuntimeException $error) { $erro = $error->getMessage(); $conteudo = ''; }
     $status = $_POST['status'];
     $data_agendamento = !empty($_POST['data_agendamento']) ? date('Y-m-d H:i:s', strtotime($_POST['data_agendamento'])) : null;
-    $destaque = isset($_POST['destaque']) ? 1 : 0;
-    $urgente = isset($_POST['urgente']) ? 1 : 0;
+    $destaque = isAdmin() ? (isset($_POST['destaque']) ? 1 : 0) : (int) ($noticia['destaque'] ?? 0);
+    $urgente = isAdmin() ? (isset($_POST['urgente']) ? 1 : 0) : (int) ($noticia['urgente'] ?? 0);
     $slug = createSlug($titulo);
     
     // Garantir que o slug seja único
@@ -51,32 +74,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $imagem_destacada = $noticia['imagem_destacada'] ?? null;
 
-    if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] === UPLOAD_ERR_OK) {
-        $file = $_FILES['imagem'];
-        if ($file['size'] > 5242880) { // 5MB limit
-            $erro = 'Arquivo excede o limite de 5MB.';
-        } else {
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $mime = finfo_file($finfo, $file['tmp_name']);
-            finfo_close($finfo);
-            $allowed_mimes = ['image/jpeg', 'image/png', 'image/webp'];
-            if (!in_array($mime, $allowed_mimes)) {
-                $erro = 'O arquivo enviado não é uma imagem válida.';
-            } else {
-                $base64 = base64_encode(file_get_contents($file['tmp_name']));
-                $imagem_destacada = 'data:' . $mime . ';base64,' . $base64;
-                
-                // Remove a capa antiga do servidor se era um arquivo físico antigo
-                if (!empty($noticia['imagem_destacada']) && !str_starts_with($noticia['imagem_destacada'], 'data:') && file_exists(__DIR__ . '/../uploads/noticias/' . $noticia['imagem_destacada'])) {
-                    unlink(__DIR__ . '/../uploads/noticias/' . $noticia['imagem_destacada']);
-                }
-            }
+    try {
+        if ($coverToken !== '') {
+            $uploadedCover = editorialReadUpload($coverToken, 'cover');
+            $imagem_destacada = $uploadedCover['filename'];
+        } elseif (isset($_FILES['imagem']) && $_FILES['imagem']['error'] !== UPLOAD_ERR_NO_FILE) {
+            if ($_FILES['imagem']['error'] !== UPLOAD_ERR_OK) throw new RuntimeException('A imagem excedeu o limite de envio direto do servidor. Use o editor com JavaScript para enviá-la em partes.');
+            // Sem limite fixo de 5 MB e sem converter a capa para Base64 no banco.
+            $imagem_destacada = editorialImageFile($_FILES['imagem']['tmp_name']);
         }
-    }
-
+    } catch (RuntimeException $error) { $erro = $error->getMessage(); }
     if (empty($erro)) {
         // Se a notícia atual for marcada como destaque, remove o destaque das outras
-        if ($destaque == 1) {
+        if (isAdmin() && $destaque == 1) {
             $pdo->query("UPDATE noticias SET destaque = 0");
         }
 
@@ -102,6 +112,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $stmt = $pdo->prepare("UPDATE noticias SET titulo=?, subtitulo=?, slug=?, conteudo=?, imagem_destacada=?, autor_id=?, autor_nome=?, categoria_id=?, status=?, destaque=?, urgente=?, data_agendamento=? WHERE id=?");
                 $stmt->execute([$titulo, $subtitulo, $slug, $conteudo, $imagem_destacada, $autor_id_post, $autor_nome_post, $categoria_id, $status, $destaque, $urgente, $data_agendamento, $id]);
+                if ($contentToken !== '') editorialConsumeUpload($contentToken, 'content');
+                if ($coverToken !== '') editorialConsumeUpload($coverToken, 'cover');
                 header("Location: noticias.php");
                 exit;
             } catch (PDOException $e) {
@@ -111,6 +123,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $stmt = $pdo->prepare("INSERT INTO noticias (titulo, subtitulo, slug, conteudo, imagem_destacada, autor_id, autor_nome, categoria_id, status, destaque, urgente, data_agendamento) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([$titulo, $subtitulo, $slug, $conteudo, $imagem_destacada, $autor_id_post, $autor_nome_post, $categoria_id, $status, $destaque, $urgente, $data_agendamento]);
+                if ($contentToken !== '') editorialConsumeUpload($contentToken, 'content');
+                if ($coverToken !== '') editorialConsumeUpload($coverToken, 'cover');
                 header("Location: noticias.php");
                 exit;
             } catch (PDOException $e) {
@@ -163,8 +177,11 @@ if (!$categoria_id_pre && $cat_slug_pre) {
     </div>
 <?php endif; ?>
 
-<form action="" method="POST" enctype="multipart/form-data" id="form-noticia">
+<form action="" method="POST" enctype="multipart/form-data" id="form-noticia" data-upload-url="<?= escape(BASE_URL . '/admin/upload.php') ?>">
     <input type="hidden" name="csrf_token" value="<?= getCsrfToken() ?>">
+    <input type="hidden" name="imagem_token" value="<?= escape($_POST['imagem_token'] ?? '') ?>">
+    <input type="hidden" name="conteudo_token" value="">
+    <div id="editor-upload-status" role="status" aria-live="polite" hidden style="padding:12px 16px;margin-bottom:16px;border:1px solid var(--adm-border);border-radius:8px;"></div>
 
     <div class="editorial-grid">
         
@@ -179,19 +196,19 @@ if (!$categoria_id_pre && $cat_slug_pre) {
                 
                 <div class="form-group">
                     <label>Título da Matéria <span style="color: var(--adm-accent);">*</span></label>
-                    <input type="text" name="titulo" class="form-control" value="<?= $noticia ? escape($noticia['titulo']) : '' ?>" placeholder="Escreva uma manchete clara, atrativa e informativa..." style="font-size: 1.15rem; font-weight: 700; padding: 14px 16px;" required>
+                    <input type="text" name="titulo" class="form-control" value="<?= escape($_POST['titulo'] ?? ($noticia['titulo'] ?? '')) ?>" placeholder="Escreva uma manchete clara, atrativa e informativa..." style="font-size: 1.15rem; font-weight: 700; padding: 14px 16px;" required>
                 </div>
                 
                 <div class="form-group">
                     <label>Subtítulo / Linha Fina (Opcional)</label>
-                    <input type="text" name="subtitulo" class="form-control" value="<?= $noticia ? escape($noticia['subtitulo']) : '' ?>" placeholder="Resumo de uma frase que complementa o título na home e na página...">
+                    <input type="text" name="subtitulo" class="form-control" value="<?= escape($_POST['subtitulo'] ?? ($noticia['subtitulo'] ?? '')) ?>" placeholder="Resumo de uma frase que complementa o título na home e na página...">
                 </div>
                 
                 <div class="form-group" style="margin-bottom: 0;">
                     <label>Corpo do Texto</label>
                     <input type="hidden" name="conteudo">
                     <input type="hidden" name="conteudo_b64" id="conteudo_b64">
-                    <div id="editor-container"><?= $noticia ? $noticia['conteudo'] : '' ?></div>
+                    <div id="editor-container"><?= isset($conteudo) && $_SERVER['REQUEST_METHOD'] === 'POST' ? $conteudo : ($noticia['conteudo'] ?? '') ?></div>
                 </div>
             </div>
         </div>
@@ -271,13 +288,14 @@ if (!$categoria_id_pre && $cat_slug_pre) {
                     </div>
 
                     <label><?= ($noticia && $noticia['imagem_destacada']) ? 'Substituir Imagem' : 'Enviar Foto de Capa' ?></label>
-                    <input type="file" name="imagem" class="form-control" accept="image/jpeg,image/png,image/webp" <?= !$noticia ? 'required' : '' ?> style="padding: 10px;">
+                    <input type="file" name="imagem" class="form-control" accept="image/jpeg,image/png,image/webp,image/gif" <?= !$noticia && empty($_POST['imagem_token']) ? 'required' : '' ?> style="padding: 10px;">
                     <small style="display: block; margin-top: 6px; color: var(--adm-text-muted); font-size: 0.75rem;">
-                        JPG, PNG ou WEBP até 5MB. Proporção recomendada: 16:9.
+                        JPG, PNG, WEBP ou GIF. Arquivos grandes são enviados em partes, com progresso. Proporção recomendada: 16:9.
                     </small>
                 </div>
             </div>
 
+            <?php if (isAdmin()): ?>
             <!-- Card Destaques & Visibilidade -->
             <div class="card" style="margin-bottom: 0;">
                 <div class="card-header">
@@ -311,6 +329,7 @@ if (!$categoria_id_pre && $cat_slug_pre) {
                 </div>
             </div>
 
+            <?php endif; ?>
             <!-- Botão Salvar / Publicar -->
             <button type="submit" class="btn btn-accent" style="width: 100%; padding: 14px; font-size: 1rem; font-weight: 700; box-shadow: var(--adm-shadow-md);">
                 <i class="fas fa-check"></i> <?= $noticia ? 'Salvar Alterações' : 'Publicar no Portal' ?>
