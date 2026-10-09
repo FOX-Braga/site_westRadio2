@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../includes/news_queries.php';
 $page_title = "Dashboard";
 require_once __DIR__ . '/../includes/auth.php';
 if (isJornalista()) { 
@@ -8,6 +9,8 @@ if (isJornalista()) {
 require_once __DIR__ . '/includes/header.php';
 
 $pdo = Database::getInstance();
+$authorSql = newsAuthorSql($pdo);
+$imageSql = newsImageSql($pdo);
 
 // Estatísticas
 $total_noticias = (int)$pdo->query("SELECT COUNT(*) FROM noticias")->fetchColumn();
@@ -17,9 +20,9 @@ $total_views = (int)$pdo->query("SELECT SUM(visualizacoes) FROM noticias")->fetc
 
 // Últimas 6 notícias adicionadas
 $ultimas = $pdo->query("
-    SELECT n.id, n.titulo, n.slug, n.status, n.visualizacoes, n.imagem_destacada, n.criado_em,
+    SELECT n.id, n.titulo, n.slug, n.status, n.visualizacoes, n.criado_em,
            COALESCE(c.nome, 'Geral') as categoria,
-           COALESCE(u.nome, n.autor_nome, 'Redação') as autor
+           {$authorSql} as autor
     FROM noticias n 
     LEFT JOIN categorias c ON n.categoria_id = c.id 
     LEFT JOIN usuarios u ON n.autor_id = u.id 

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/includes/news_queries.php';
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/functions.php';
 
@@ -10,6 +11,7 @@ if (empty($slug)) {
 }
 
 $pdo = Database::getInstance();
+$imageSql = newsImageSql($pdo);
 
 if ($slug === 'ultimas-noticias') {
     $categoria = [
@@ -64,9 +66,9 @@ if ($slug === 'ultimas-noticias') {
     $total = $stmtCount->fetch()['total'];
     $total_pages = ceil($total / $limit);
 
-    $stmtNoticias = $pdo->prepare("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
+    $stmtNoticias = $pdo->prepare("SELECT n.id, n.titulo, n.subtitulo, n.slug, n.criado_em, {$imageSql} AS imagem_destacada, c.nome as categoria_nome, c.slug as categoria_slug
                                    FROM noticias n 
-                                   JOIN categorias c ON n.categoria_id = c.id 
+                                   LEFT JOIN categorias c ON n.categoria_id = c.id
                                    WHERE n.status = 'publicado' 
                                    ORDER BY n.criado_em DESC LIMIT $limit OFFSET $offset");
     $stmtNoticias->execute();
@@ -76,9 +78,9 @@ if ($slug === 'ultimas-noticias') {
     $total = $stmtCount->fetch()['total'];
     $total_pages = ceil($total / $limit);
 
-    $stmtNoticias = $pdo->prepare("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
+    $stmtNoticias = $pdo->prepare("SELECT n.id, n.titulo, n.subtitulo, n.slug, n.criado_em, {$imageSql} AS imagem_destacada, c.nome as categoria_nome, c.slug as categoria_slug
                                    FROM noticias n 
-                                   JOIN categorias c ON n.categoria_id = c.id 
+                                   LEFT JOIN categorias c ON n.categoria_id = c.id
                                    WHERE n.categoria_id = ? AND n.status = 'publicado' 
                                    ORDER BY n.criado_em DESC LIMIT $limit OFFSET $offset");
     $stmtNoticias->execute([$categoria['id']]);
@@ -100,7 +102,7 @@ require_once __DIR__ . '/includes/header.php';
         <div class="news-card-v">
             <a href="<?= BASE_URL ?>/noticia/<?= escape($item['slug']) ?>">
                 <div class="img-wrapper">
-                    <img src="<?= $item['imagem_destacada'] ? (str_starts_with($item['imagem_destacada'], 'data:') ? $item['imagem_destacada'] : BASE_URL . '/uploads/noticias/' . $item['imagem_destacada']) : 'https://placehold.co/600x400/eeeeee/999999?text=Sem+Imagem' ?>" alt="<?= escape($item['titulo']) ?>" loading="lazy">
+                    <img src="<?= newsImageUrl($item['imagem_destacada']) ?>" alt="<?= escape($item['titulo']) ?>" loading="lazy">
                 </div>
                 <span class="tag" style="color: <?= escape($categoria['cor']) ?>"><?= escape($item['categoria_nome']) ?></span>
                 <h3><?= escape($item['titulo']) ?></h3>

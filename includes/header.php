@@ -2,13 +2,12 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/news_queries.php';
 
 $pdo = Database::getInstance();
 
 // Hook: Garante a coluna data_agendamento e publica posts agendados automaticamente
-try {
-    @$pdo->exec("ALTER TABLE noticias ADD COLUMN data_agendamento DATETIME DEFAULT NULL");
-} catch(Exception $e) {}
+// A leitura da pagina nao exige permissao ALTER no banco.
 
 // Hook: Garante a criação da tabela de banners
 try {
@@ -43,7 +42,7 @@ try {
     }
 } catch(Exception $e) {}
 
-if (isset($pdo)) {
+if (isset($pdo) && newsHasColumn($pdo, 'data_agendamento')) {
     $now = date('Y-m-d H:i:s');
     $pdo->prepare("UPDATE noticias SET status = 'publicado', data_agendamento = NULL, criado_em = ? WHERE status = 'rascunho' AND data_agendamento IS NOT NULL AND data_agendamento <= ?")->execute([$now, $now]);
 }

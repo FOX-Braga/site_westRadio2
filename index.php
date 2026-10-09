@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/includes/news_queries.php';
 // Roteamento de contingência
 $script_name = $_SERVER['SCRIPT_NAME'] ?? '';
 $base_path = rtrim(dirname($script_name), '/\\');
@@ -35,10 +36,12 @@ if ($request_uri === '/migrar-banco') { require_once __DIR__ . '/migrar-banco.ph
 
 $page_title = "Home";
 require_once __DIR__ . '/includes/header.php';
+$authorSql = newsAuthorSql($pdo);
+$imageSql = newsImageSql($pdo);
 
 // Busca Destaques Principais
-$stmt = $pdo->query("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug, 
-                            COALESCE(u.nome, n.autor_nome, 'Redação') as autor_nome 
+$stmt = $pdo->query("SELECT n.id, n.titulo, n.subtitulo, n.slug, n.criado_em, {$imageSql} AS imagem_destacada, c.nome as categoria_nome, c.slug as categoria_slug,
+                            {$authorSql} as autor_nome
                      FROM noticias n 
                      LEFT JOIN categorias c ON n.categoria_id = c.id 
                      LEFT JOIN usuarios u ON n.autor_id = u.id
@@ -49,13 +52,13 @@ $noticia_destaque_principal = $destaques[0] ?? null;
 $sub_destaques = array_slice($destaques, 1, 3);
 
 // Busca Últimas Notícias (20 matérias)
-$stmt = $pdo->query("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
+$stmt = $pdo->query("SELECT n.id, n.titulo, n.subtitulo, n.slug, n.criado_em, {$imageSql} AS imagem_destacada, c.nome as categoria_nome, c.slug as categoria_slug
                   FROM noticias n LEFT JOIN categorias c ON n.categoria_id = c.id 
                   WHERE n.status = 'publicado' ORDER BY n.criado_em DESC LIMIT 20");
 $todas_ultimas = $stmt->fetchAll();
 
 // Busca Destaques da Manhã (04:00 às 12:59)
-$stmtManha = $pdo->query("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
+$stmtManha = $pdo->query("SELECT n.id, n.titulo, n.subtitulo, n.slug, n.criado_em, {$imageSql} AS imagem_destacada, c.nome as categoria_nome, c.slug as categoria_slug
                           FROM noticias n LEFT JOIN categorias c ON n.categoria_id = c.id 
                           WHERE n.status = 'publicado' 
                           AND SUBSTR(n.criado_em, 12, 2) >= '04' AND SUBSTR(n.criado_em, 12, 2) <= '12'
@@ -63,7 +66,7 @@ $stmtManha = $pdo->query("SELECT n.*, c.nome as categoria_nome, c.slug as catego
 $destaques_manha = $stmtManha->fetchAll();
 
 // Busca Destaques da Tarde (13:00 às 19:59)
-$stmtTarde = $pdo->query("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug 
+$stmtTarde = $pdo->query("SELECT n.id, n.titulo, n.subtitulo, n.slug, n.criado_em, {$imageSql} AS imagem_destacada, c.nome as categoria_nome, c.slug as categoria_slug
                           FROM noticias n LEFT JOIN categorias c ON n.categoria_id = c.id 
                           WHERE n.status = 'publicado' 
                           AND SUBSTR(n.criado_em, 12, 2) >= '13' AND SUBSTR(n.criado_em, 12, 2) <= '19'
@@ -74,8 +77,8 @@ $destaques_tarde = $stmtTarde->fetchAll();
 $categories_slugs = ['mundo', 'politica', 'economia', 'cultura', 'tecnologia', 'saude', 'esportes', 'opiniao'];
 $sections_data = [];
 foreach ($categories_slugs as $slug) {
-    $stmt = $pdo->prepare("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug, 
-                                  COALESCE(u.nome, n.autor_nome, 'Redação') as autor_nome, 
+    $stmt = $pdo->prepare("SELECT n.id, n.titulo, n.subtitulo, n.slug, n.criado_em, {$imageSql} AS imagem_destacada, c.nome as categoria_nome, c.slug as categoria_slug,
+                                  {$authorSql} as autor_nome,
                                   u.foto_perfil as autor_foto 
                            FROM noticias n LEFT JOIN categorias c ON n.categoria_id = c.id 
                            LEFT JOIN usuarios u ON n.autor_id = u.id
@@ -85,9 +88,7 @@ foreach ($categories_slugs as $slug) {
 }
 
 function renderImage($img) {
-    if (!$img) return 'https://placehold.co/600x400/eeeeee/999999?text=Sem+Imagem';
-    if (str_starts_with($img, 'data:')) return $img;
-    return BASE_URL . '/uploads/noticias/' . $img;
+    return newsImageUrl($img);
 }
 ?>
 

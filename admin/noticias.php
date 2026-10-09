@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../includes/news_queries.php';
 $page_title = "Gerenciar Notícias";
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/functions.php';
@@ -7,6 +8,8 @@ requirePanelAccess();
 $page_title = isJornalista() ? 'Minhas matérias' : 'Gerenciar Notícias';
 
 $pdo = Database::getInstance();
+$authorSql = newsAuthorSql($pdo);
+$imageSql = newsImageSql($pdo);
 
 // Lógica de exclusão de notícia (Apenas no painel de notícias!)
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
@@ -64,9 +67,10 @@ $total = (int)$countStmt->fetchColumn();
 $total_pages = ceil($total / $limit);
 
 // Busca Notícias
-$query = "SELECT n.id, n.titulo, n.slug, n.status, n.visualizacoes, n.criado_em, n.destaque, n.urgente,
+$urgentSql = newsHasColumn($pdo, 'urgente') ? 'n.urgente' : '0';
+$query = "SELECT n.id, n.titulo, n.slug, n.status, n.visualizacoes, n.criado_em, n.destaque, {$urgentSql} AS urgente,
                  COALESCE(c.nome, 'Sem Categoria') as categoria, 
-                 COALESCE(u.nome, n.autor_nome, 'Redação') as autor_nome 
+                 {$authorSql} as autor_nome
           FROM noticias n 
           LEFT JOIN categorias c ON n.categoria_id = c.id 
           LEFT JOIN usuarios u ON n.autor_id = u.id 

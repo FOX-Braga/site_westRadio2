@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/includes/news_queries.php';
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/functions.php';
 
@@ -10,10 +11,12 @@ if (empty($slug)) {
 }
 
 $pdo = Database::getInstance();
+$authorSql = newsAuthorSql($pdo);
+$imageSql = newsImageSql($pdo);
 
 // Buscar a notícia
 $stmt = $pdo->prepare("SELECT n.*, c.nome as categoria_nome, c.slug as categoria_slug, 
-                       COALESCE(u.nome, n.autor_nome, 'Redação') as autor_nome, 
+                       {$authorSql} as autor_nome,
                        u.bio as autor_bio, 
                        u.foto_perfil as autor_foto 
                        FROM noticias n 
