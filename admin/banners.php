@@ -100,19 +100,26 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
 }
 ?>
 
-<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
+<div class="editorial-grid">
     
     <!-- Formulário -->
-    <div class="card" style="height: fit-content;">
-        <h3 style="margin-bottom: 20px;"><i class="fas fa-bullhorn"></i> <?= $edit_banner ? 'Editar Banner' : 'Novo Banner' ?></h3>
+    <div class="card" style="margin-bottom: 0;">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-bullhorn"></i> <?= $edit_banner ? 'Editar Banner' : 'Cadastrar Novo Banner' ?>
+            </h3>
+        </div>
         
         <?php if ($erro): ?>
-            <div style="padding: 10px; background-color: #fee2e2; color: #991b1b; margin-bottom: 15px; border-radius: 4px;"><?= escape($erro) ?></div>
+            <div style="padding: 12px 16px; background-color: var(--adm-danger-bg); color: var(--adm-danger-text); margin-bottom: 16px; border-radius: var(--adm-radius-sm); font-weight: 600; font-size: 0.875rem;">
+                <i class="fas fa-exclamation-circle"></i> <?= escape($erro) ?>
+            </div>
         <?php endif; ?>
         <?php if ($sucesso || (isset($_GET['msg']) && $_GET['msg'] == 'deleted') || (isset($_GET['msg']) && $_GET['msg'] == 'status')): ?>
-            <div style="padding: 10px; background-color: #dcfce7; color: #166534; margin-bottom: 15px; border-radius: 4px;">
+            <div style="padding: 12px 16px; background-color: var(--adm-success-bg); color: var(--adm-success-text); margin-bottom: 16px; border-radius: var(--adm-radius-sm); font-weight: 600; font-size: 0.875rem;">
+                <i class="fas fa-check-circle"></i> 
                 <?php 
-                    if (isset($_GET['msg']) && $_GET['msg'] == 'deleted') echo "Banner excluído.";
+                    if (isset($_GET['msg']) && $_GET['msg'] == 'deleted') echo "Banner excluído com sucesso.";
                     else if (isset($_GET['msg']) && $_GET['msg'] == 'status') echo "Status do banner atualizado.";
                     else echo $sucesso;
                 ?>
@@ -127,51 +134,57 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
             
             <div class="form-group">
                 <label>Título / Identificação</label>
-                <input type="text" name="titulo" class="form-control" value="<?= $edit_banner ? escape($edit_banner['titulo']) : '' ?>" placeholder="Ex: Promoção Verão" required>
+                <input type="text" name="titulo" class="form-control" value="<?= $edit_banner ? escape($edit_banner['titulo']) : '' ?>" placeholder="Ex: Patrocinador Principal" required>
             </div>
             
             <div class="form-group">
                 <label>Link de Destino</label>
-                <input type="url" name="link" class="form-control" value="<?= $edit_banner ? escape($edit_banner['link']) : '' ?>" placeholder="https://..." required>
+                <input type="url" name="link" class="form-control" value="<?= $edit_banner ? escape($edit_banner['link']) : '' ?>" placeholder="https://exemplo.com.br" required>
             </div>
             
             <div class="form-group">
                 <label>Status</label>
-                <select name="status" class="form-control">
-                    <option value="ativo" <?= ($edit_banner && $edit_banner['status'] == 'ativo') ? 'selected' : '' ?>>Ativo</option>
-                    <option value="inativo" <?= ($edit_banner && $edit_banner['status'] == 'inativo') ? 'selected' : '' ?>>Inativo</option>
+                <select name="status" class="form-control" style="font-weight: 600;">
+                    <option value="ativo" <?= ($edit_banner && $edit_banner['status'] == 'ativo') ? 'selected' : '' ?>>🟢 Ativo (Visível no portal)</option>
+                    <option value="inativo" <?= ($edit_banner && $edit_banner['status'] == 'inativo') ? 'selected' : '' ?>>⚪ Inativo (Oculto)</option>
                 </select>
             </div>
 
             <div class="form-group">
                 <label>Imagem do Banner</label>
-                <?php if ($edit_banner && $edit_banner['imagem']): ?>
-                    <div style="margin-bottom: 10px;">
-                        <img src="<?= BASE_URL ?>/uploads/banners/<?= escape($edit_banner['imagem']) ?>" style="max-width: 100%; height: auto; border-radius: 4px;">
-                    </div>
-                <?php endif; ?>
-                <input type="file" name="imagem" class="form-control" accept="image/*" <?= !$edit_banner ? 'required' : '' ?>>
-                <small style="color: var(--color-text-muted);">Tamanho recomendado: 970x250px ou 1050x250px (Formato Billboard Horizontal). JPG, PNG ou WEBP.</small>
+                <div class="image-preview-wrapper">
+                    <?php if ($edit_banner && $edit_banner['imagem']): ?>
+                        <img id="image-preview-target" src="<?= BASE_URL ?>/uploads/banners/<?= escape($edit_banner['imagem']) ?>" style="width: 100%; max-height: 180px; object-fit: contain; background: #0f172a; border-radius: var(--adm-radius-sm); border: 1px solid var(--adm-border); margin-bottom: 12px; display: block;">
+                    <?php endif; ?>
+                </div>
+                <input type="file" name="imagem" class="form-control" accept="image/*" <?= !$edit_banner ? 'required' : '' ?> style="padding: 10px;">
+                <small style="display: block; margin-top: 6px; color: var(--adm-text-muted); font-size: 0.75rem;">Formato horizontal recomendado: 970x250px ou 1050x250px (JPG, PNG ou WEBP).</small>
             </div>
             
-            <button type="submit" class="btn" style="width: 100%;"><?= $edit_banner ? 'Atualizar Banner' : 'Salvar Banner' ?></button>
+            <button type="submit" class="btn btn-accent" style="width: 100%; margin-top: 10px;">
+                <i class="fas fa-check"></i> <?= $edit_banner ? 'Atualizar Banner' : 'Cadastrar Banner' ?>
+            </button>
             <?php if ($edit_banner): ?>
-                <a href="banners.php" class="btn btn-outline" style="display: block; text-align: center; margin-top: 10px; width: 100%;">Cancelar Edição</a>
+                <a href="banners.php" class="btn btn-outline" style="width: 100%; margin-top: 8px;">Cancelar Edição</a>
             <?php endif; ?>
         </form>
     </div>
 
     <!-- Tabela -->
-    <div class="card">
-        <h3 style="margin-bottom: 20px;">Banners Cadastrados</h3>
+    <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 0;">
+        <div style="padding: 20px 24px; border-bottom: 1px solid var(--adm-border-subtle);">
+            <h3 class="card-title">
+                <i class="fas fa-images"></i> Banners Ativos e Histórico (<?= count($banners) ?>)
+            </h3>
+        </div>
         <div class="table-responsive">
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 80px;">Imagem</th>
-                        <th>Detalhes</th>
+                        <th style="width: 100px;">Prévia</th>
+                        <th>Campanha</th>
                         <th>Status</th>
-                        <th>Ações</th>
+                        <th style="text-align: right;">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -179,31 +192,38 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
                         <?php foreach ($banners as $banner): ?>
                         <tr>
                             <td>
-                                <img src="<?= BASE_URL ?>/uploads/banners/<?= escape($banner['imagem']) ?>" style="width: 80px; height: auto; border-radius: 4px;">
+                                <img src="<?= BASE_URL ?>/uploads/banners/<?= escape($banner['imagem']) ?>" style="width: 90px; height: 35px; object-fit: cover; border-radius: 4px; border: 1px solid var(--adm-border); display: block;">
                             </td>
                             <td>
-                                <strong><?= escape($banner['titulo']) ?></strong><br>
-                                <a href="<?= escape($banner['link']) ?>" target="_blank" style="font-size: 0.85rem; color: var(--color-primary);"><?= escape($banner['link']) ?></a>
+                                <div style="font-weight: 600; color: var(--adm-text-main); font-size: 0.9rem;"><?= escape($banner['titulo']) ?></div>
+                                <a href="<?= escape($banner['link']) ?>" target="_blank" style="font-size: 0.8rem; color: #2563eb; text-decoration: underline;"><?= escape(mb_strimwidth($banner['link'], 0, 35, '...')) ?></a>
                             </td>
                             <td>
                                 <?php if ($banner['status'] == 'ativo'): ?>
-                                    <span style="background: #dcfce7; color: #166534; padding: 3px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">Ativo</span>
+                                    <span class="badge badge-success">Ativo</span>
                                 <?php else: ?>
-                                    <span style="background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">Inativo</span>
+                                    <span class="badge" style="background: #f1f5f9; color: var(--adm-text-muted);">Inativo</span>
                                 <?php endif; ?>
                             </td>
-                            <td>
-                                <a href="banners.php?toggle=<?= $banner['id'] ?>&token=<?= getCsrfToken() ?>" class="btn btn-sm" style="background-color: <?= $banner['status'] == 'ativo' ? '#64748b' : '#10b981' ?>;" title="<?= $banner['status'] == 'ativo' ? 'Desativar' : 'Ativar' ?>">
+                            <td style="text-align: right; white-space: nowrap;">
+                                <a href="banners.php?toggle=<?= $banner['id'] ?>&token=<?= getCsrfToken() ?>" class="btn btn-sm btn-outline btn-icon" title="<?= $banner['status'] == 'ativo' ? 'Ocultar no site' : 'Ativar no site' ?>">
                                     <i class="fas <?= $banner['status'] == 'ativo' ? 'fa-eye-slash' : 'fa-eye' ?>"></i>
                                 </a>
-                                <a href="banners.php?edit=<?= $banner['id'] ?>" class="btn btn-sm" style="background-color: #3b82f6;"><i class="fas fa-edit"></i></a>
-                                <a href="banners.php?delete=<?= $banner['id'] ?>&token=<?= getCsrfToken() ?>" class="btn btn-sm" style="background-color: #ef4444;" onclick="return confirm('Tem certeza que deseja excluir este banner?')"><i class="fas fa-trash"></i></a>
+                                <a href="banners.php?edit=<?= $banner['id'] ?>" class="btn btn-sm btn-outline btn-icon" title="Editar">
+                                    <i class="fas fa-pen"></i>
+                                </a>
+                                <a href="banners.php?delete=<?= $banner['id'] ?>&token=<?= getCsrfToken() ?>" class="btn btn-sm btn-outline btn-icon btn-danger" onclick="return confirm('Deseja realmente remover este banner?')" title="Excluir">
+                                    <i class="fas fa-trash"></i>
+                                </a>
                             </td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="4" style="text-align: center; padding: 20px; color: var(--color-text-muted);">Nenhum banner cadastrado ainda.</td>
+                            <td colspan="4" style="text-align: center; padding: 40px 20px; color: var(--adm-text-muted);">
+                                <i class="fas fa-bullhorn" style="font-size: 2rem; display: block; margin-bottom: 10px; color: var(--adm-text-light);"></i>
+                                Nenhum banner cadastrado ainda.
+                            </td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
