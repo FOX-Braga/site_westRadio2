@@ -3,35 +3,30 @@ $filtro = $_GET['filter'] ?? '';
 $page_title = ($filtro == 'colunista') ? "Colunistas e Autores" : "Gerenciar Usuários";
 require_once __DIR__ . '/../includes/auth.php';
 requireAdmin();
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/editorial_delete.php';
 
 $pdo = Database::getInstance();
 
 // Excluir usuário (não permite excluir a si mesmo)
 // REGRA: As notícias são independentes do usuário. Ao excluir um usuário/perfil,
 // as notícias continuam intactas no site com o nome do autor preservado.
-if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
-    if (!validateCsrfToken($_GET['token'] ?? '')) die("Acesso Negado (CSRF).");
-    $id = (int)$_GET['delete'];
-    if ($id != $_SESSION['user_id']) {
-        // 1. Obter o nome do usuário antes da exclusão para preservar a autoria nas matérias
-        $stmtUser = $pdo->prepare("SELECT nome FROM usuarios WHERE id = ?");
-        $stmtUser->execute([$id]);
-        $nomeAutor = $stmtUser->fetchColumn();
-
-        if ($nomeAutor) {
-            $pdo->prepare("UPDATE noticias SET autor_nome = ? WHERE autor_id = ? AND (autor_nome IS NULL OR autor_nome = '')")->execute([$nomeAutor, $id]);
-        }
-
-        // 2. Desvincular as notícias do usuário (autor_id = NULL), garantindo que nenhuma matéria seja apagada
-        $pdo->prepare("UPDATE noticias SET autor_id = NULL WHERE autor_id = ?")->execute([$id]);
-
-        // 3. Excluir o usuário do sistema
-        $pdo->prepare("DELETE FROM usuarios WHERE id = ?")->execute([$id]);
-        header("Location: usuarios.php" . ($filtro ? "?filter=$filtro&" : "?") . "msg=deleted");
-        exit;
+$deleteId = $_POST['delete'] ?? $_GET['delete'] ?? null;
+if ($deleteId !== null) {
+    if (!validateCsrfToken($_POST['csrf_token'] ?? $_GET['token'] ?? '')) { http_response_code(403); exit('Acesso Negado (CSRF).'); }
+    $id = filter_var($deleteId, FILTER_VALIDATE_INT);
+    if (!$id || $id < 1) { http_response_code(400); exit('Usuario invalido.'); }
+    if ($id === (int) $_SESSION['user_id']) {
+        $erro = 'Voce nao pode excluir a sua propria conta ativa.';
     } else {
-        $erro = "Você não pode excluir a sua própria conta ativa.";
+        try {
+            editorialDeleteUser($pdo, $id);
+            header('Location: usuarios.php?' . http_build_query(['filter'=>$filtro, 'msg'=>'deleted']));
+            exit;
+        } catch (Throwable $e) {
+            error_log('Falha ao excluir usuario: ' . $e->getMessage());
+            $erro = 'Nao foi possivel excluir o usuario. Nenhuma materia foi apagada. Consulte o log da hospedagem.';
+        }
     }
 }
 
@@ -46,6 +41,8 @@ if (isset($_GET['set_role']) && is_numeric($_GET['id']) && in_array($_GET['set_r
         exit;
     }
 }
+
+require_once __DIR__ . '/includes/header.php';
 
 if ($filtro == 'colunista') {
     $usuarios = $pdo->query("SELECT id, nome, email, tipo, criado_em FROM usuarios WHERE tipo IN ('admin', 'jornalista', 'colunista') ORDER BY criado_em DESC")->fetchAll();
@@ -144,12 +141,11 @@ if ($filtro == 'colunista') {
                                     </select>
                                 </form>
 
-                                <a href="usuarios.php?delete=<?= $u['id'] ?>&token=<?= getCsrfToken() ?><?= $filtro ? "&filter=$filtro" : '' ?>" 
-                                   class="btn btn-sm btn-outline btn-icon btn-danger" 
-                                   onclick="return confirm('Deseja excluir este usuário? As matérias que ele escreveu continuarão preservadas no portal.')" 
-                                   title="Excluir Usuário">
-                                    <i class="fas fa-trash"></i>
-                                </a>
+                                <form method="POST" action="usuarios.php?filter=<?= urlencode($filtro) ?>" style="display:inline" onsubmit="return confirm('Excluir este usuario? As noticias continuarao preservadas.')">
+                                    <input type="hidden" name="delete" value="<?= (int) $u['id'] ?>">
+                                    <input type="hidden" name="csrf_token" value="<?= escape(getCsrfToken()) ?>">
+                                    <button type="submit" class="btn btn-sm btn-outline btn-icon btn-danger" title="Excluir usuario"><i class="fas fa-trash"></i></button>
+                                </form>
                             </div>
                         <?php else: ?>
                             <span style="font-size: 0.8rem; color: var(--adm-text-light); font-style: italic;">Conta em uso</span>

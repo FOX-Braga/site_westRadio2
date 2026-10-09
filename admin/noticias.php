@@ -5,6 +5,7 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
 requirePanelAccess();
+require_once __DIR__ . '/../includes/editorial_delete.php';
 $page_title = isJornalista() ? 'Minhas matérias' : 'Gerenciar Notícias';
 
 $pdo = Database::getInstance();
@@ -12,23 +13,20 @@ $authorSql = newsAuthorSql($pdo);
 $imageSql = newsImageSql($pdo);
 
 // Lógica de exclusão de notícia (Apenas no painel de notícias!)
-if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
+$deleteId = $_POST['delete'] ?? $_GET['delete'] ?? null;
+if ($deleteId !== null) {
     requireAdmin();
-    if (!validateCsrfToken($_GET['token'] ?? '')) die("Acesso Negado (CSRF).");
-    $id = (int)$_GET['delete'];
-    
-    // Buscar a imagem para excluir do disco se for arquivo físico
-    $stmtImg = $pdo->prepare("SELECT imagem_destacada FROM noticias WHERE id = ?");
-    $stmtImg->execute([$id]);
-    $img = $stmtImg->fetchColumn();
-    
-    if ($img && !str_starts_with($img, 'data:') && file_exists(__DIR__ . '/../uploads/noticias/' . $img)) {
-        unlink(__DIR__ . '/../uploads/noticias/' . $img);
+    if (!validateCsrfToken($_POST['csrf_token'] ?? $_GET['token'] ?? '')) { http_response_code(403); exit('Acesso Negado (CSRF).'); }
+    $id = filter_var($deleteId, FILTER_VALIDATE_INT);
+    if (!$id || $id < 1) { http_response_code(400); exit('Noticia invalida.'); }
+    try {
+        editorialDeleteNews($pdo, $id);
+        header('Location: noticias.php?msg=deleted');
+        exit;
+    } catch (Throwable $e) {
+        error_log('Falha ao excluir noticia: ' . $e->getMessage());
+        $erro = 'Nao foi possivel excluir a noticia. Consulte o log da hospedagem.';
     }
-    
-    $pdo->prepare("DELETE FROM noticias WHERE id = ?")->execute([$id]);
-    header("Location: noticias.php?msg=deleted");
-    exit;
 }
 
 // Filtros e Busca
@@ -82,6 +80,8 @@ $stmt->execute($params);
 $noticias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 require_once __DIR__ . '/includes/header.php';
 ?>
+
+<?php if (!empty($erro)): ?><div role="alert" style="padding:16px;background:#fee2e2;color:#991b1b;margin-bottom:20px"><?= escape($erro) ?></div><?php endif; ?>
 
 <!-- Header da Página -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
@@ -225,9 +225,11 @@ require_once __DIR__ . '/includes/header.php';
                             <a href="noticia_form.php?id=<?= $item['id'] ?>" class="btn btn-sm btn-outline btn-icon" title="Editar">
                                 <i class="fas fa-pen"></i>
                             </a>
-                            <?php if (isAdmin()): ?><a href="noticias.php?delete=<?= $item['id'] ?>&token=<?= getCsrfToken() ?>" class="btn btn-sm btn-outline btn-icon btn-danger" onclick="return confirm('Tem certeza que deseja excluir esta matéria? Ela será removida permanentemente do portal.')" title="Excluir">
-                                <i class="fas fa-trash"></i>
-                            </a><?php endif; ?>
+                            <?php if (isAdmin()): ?><form method="POST" action="noticias.php" style="display:inline" onsubmit="return confirm('Excluir permanentemente esta materia?')">
+                                <input type="hidden" name="delete" value="<?= (int) $item['id'] ?>">
+                                <input type="hidden" name="csrf_token" value="<?= escape(getCsrfToken()) ?>">
+                                <button type="submit" class="btn btn-sm btn-outline btn-icon btn-danger" title="Excluir"><i class="fas fa-trash"></i></button>
+                            </form><?php endif; ?>
                         </td>
                     </tr>
                     <?php endforeach; ?>
