@@ -70,7 +70,14 @@ if ($filtro == 'colunista') {
 <?php if (isset($erro)): ?>
     <div style="padding: 14px 18px; background-color: var(--adm-danger-bg); color: var(--adm-danger-text); margin-bottom: 20px; border-radius: var(--adm-radius-sm); font-weight: 600;">
         <i class="fas fa-exclamation-circle"></i> <?= escape($erro) ?>
+        <?php if (strpos($erro, 'autor_id precisa aceitar NULL') !== false): ?>
+        <p style="margin:12px 0 0"><a href="corrigir_banco.php" class="btn btn-accent">Corrigir estrutura do banco</a></p>
+        <?php endif; ?>
     </div>
+<?php endif; ?>
+
+<?php if (isset($_GET['msg']) && $_GET['msg'] == 'schema_fixed'): ?>
+    <div role="status" style="padding:16px;background:#dcfce7;color:#166534;margin-bottom:20px">Banco corrigido. Agora clique na lixeira do usuario que deseja excluir; as noticias permanecerao salvas.</div>
 <?php endif; ?>
 
 <?php if (isset($_GET['msg']) && $_GET['msg'] == 'deleted'): ?>
