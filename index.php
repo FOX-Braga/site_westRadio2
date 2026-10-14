@@ -46,10 +46,10 @@ $stmt = $pdo->query("SELECT n.id, n.titulo, n.subtitulo, n.slug, n.criado_em, {$
                      LEFT JOIN categorias c ON n.categoria_id = c.id 
                      LEFT JOIN usuarios u ON n.autor_id = u.id
                      WHERE n.status = 'publicado' 
-                     ORDER BY n.destaque DESC, n.criado_em DESC LIMIT 4");
+                     ORDER BY n.destaque DESC, n.criado_em DESC LIMIT 3");
 $destaques = $stmt->fetchAll();
 $noticia_destaque_principal = $destaques[0] ?? null;
-$sub_destaques = array_slice($destaques, 1, 3);
+$sub_destaques = array_slice($destaques, 1, 2);
 
 // Busca Últimas Notícias (20 matérias)
 $stmt = $pdo->query("SELECT n.id, n.titulo, n.subtitulo, n.slug, n.criado_em, {$imageSql} AS imagem_destacada, c.nome as categoria_nome, c.slug as categoria_slug
@@ -90,6 +90,8 @@ foreach ($categories_slugs as $slug) {
 function renderImage($img) {
     return newsImageUrl($img);
 }
+require_once __DIR__ . '/includes/banners.php';
+renderBannerBand($pdo, 'home', 'TOP');
 ?>
 
 <div class="container" style="padding-top: 30px;">
@@ -218,6 +220,8 @@ function renderImage($img) {
     </section>
     <?php endif; ?>
 
+    <?php renderBannerBand($pdo, 'home', 'MIDDLE'); ?>
+
     <!-- ================= CULTURA (GRID RICO) ================= -->
     <?php if (count($sections_data['cultura']) > 0): ?>
     <section>
@@ -302,4 +306,7 @@ function renderImage($img) {
 
 </div> <!-- end container -->
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php
+renderBannerBand($pdo, 'home', 'BOTTOM');
+require_once __DIR__ . '/includes/footer.php';
+?>

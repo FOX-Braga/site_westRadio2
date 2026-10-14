@@ -1,0 +1,19 @@
+/* Estilos exclusivos da aba Banners. */
+.banner-admin-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.banner-admin .banner-help { color: var(--adm-text-muted); font-size: .8rem; line-height: 1.6; margin: 8px 0 16px; overflow-wrap: anywhere; }
+.banner-admin fieldset { border: 1px solid var(--adm-border); border-radius: 6px; padding: 16px; margin: 20px 0; min-width: 0; }
+.banner-admin legend { padding: 0 6px; font-weight: 700; font-size: .9rem; }
+.banner-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.banner-admin .banner-choice { display: flex; align-items: baseline; gap: 8px; font-size: .8rem; line-height: 1.5; margin: 8px 0; }
+.banner-choice input { flex-shrink: 0; }
+.banner-preview { display: block; width: 100%; max-height: 160px; object-fit: contain; margin: 12px 0; }
+.banner-campaign { padding: 18px 0; border-bottom: 1px solid var(--adm-border); }
+.banner-campaign:last-child { border: 0; }
+.banner-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.banner-actions form { margin: 0; }
+.banner-notice { padding: 14px; margin-bottom: 20px; background: var(--adm-success-bg); color: var(--adm-success-text); border-radius: 6px; }
+.banner-error { background: var(--adm-danger-bg); color: var(--adm-danger-text); }
+.banner-sizes { margin: 16px 0; font-size: .8rem; color: var(--adm-text-muted); line-height: 1.7; }
+.banner-sizes summary { cursor: pointer; font-weight: 700; }
+@media (max-width: 1100px) { .banner-admin-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) { .banner-choices { grid-template-columns: minmax(0, 1fr); } }

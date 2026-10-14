@@ -9,39 +9,6 @@ $pdo = Database::getInstance();
 // Hook: Garante a coluna data_agendamento e publica posts agendados automaticamente
 // A leitura da pagina nao exige permissao ALTER no banco.
 
-// Hook: Garante a criação da tabela de banners
-try {
-    $db_driver = DB_DRIVER ?? 'sqlite';
-    if ($db_driver === 'sqlite') {
-        $pdo->exec("CREATE TABLE IF NOT EXISTS banners (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            titulo VARCHAR(255) NOT NULL,
-            imagem VARCHAR(255) NOT NULL,
-            link VARCHAR(255) NOT NULL,
-            status VARCHAR(20) DEFAULT 'ativo',
-            criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
-        )");
-    } else if ($db_driver === 'mysql') {
-        $pdo->exec("CREATE TABLE IF NOT EXISTS banners (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            titulo VARCHAR(255) NOT NULL,
-            imagem VARCHAR(255) NOT NULL,
-            link VARCHAR(255) NOT NULL,
-            status VARCHAR(20) DEFAULT 'ativo',
-            criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
-        )");
-    } else if ($db_driver === 'pgsql') {
-        $pdo->exec("CREATE TABLE IF NOT EXISTS banners (
-            id SERIAL PRIMARY KEY,
-            titulo VARCHAR(255) NOT NULL,
-            imagem VARCHAR(255) NOT NULL,
-            link VARCHAR(255) NOT NULL,
-            status VARCHAR(20) DEFAULT 'ativo',
-            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )");
-    }
-} catch(Exception $e) {}
-
 if (isset($pdo) && newsHasColumn($pdo, 'data_agendamento')) {
     $now = date('Y-m-d H:i:s');
     $pdo->prepare("UPDATE noticias SET status = 'publicado', data_agendamento = NULL, criado_em = ? WHERE status = 'rascunho' AND data_agendamento IS NOT NULL AND data_agendamento <= ?")->execute([$now, $now]);
@@ -296,47 +263,6 @@ if (isset($pdo) && newsHasColumn($pdo, 'data_agendamento')) {
         </div>
     </nav>
 
-<?php
-// Carrossel de Banners no Topo (Substituindo os laterais)
-try {
-    if (isset($pdo)) {
-        $stmtBanners = $pdo->query("SELECT * FROM banners WHERE status = 'ativo'");
-        if ($stmtBanners) {
-            $displayBanners = $stmtBanners->fetchAll();
-            if (count($displayBanners) > 0) {
-?>
-                <div class="top-banner-container" style="padding: 25px 0; background-color: var(--color-bg); text-align: center;">
-                    <div class="container" style="max-width: 1050px;">
-                        <div id="top-banner-carousel" style="position: relative; overflow: hidden; width: 100%; display: flex; justify-content: center;">
-                            <?php foreach ($displayBanners as $i => $banner): ?>
-                                <a href="<?= escape($banner['link']) ?>" target="_blank" class="top-banner-slide" style="display: <?= $i === 0 ? 'block' : 'none' ?>; width: 100%;">
-                                    <img src="<?= BASE_URL ?>/uploads/banners/<?= escape($banner['imagem']) ?>" alt="<?= escape($banner['titulo']) ?>" style="width: 100%; height: auto; max-height: 250px; object-fit: cover; margin: 0 auto;">
-                                </a>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                </div>
-                <script>
-                document.addEventListener("DOMContentLoaded", function() {
-                    const slides = document.querySelectorAll('.top-banner-slide');
-                    if (slides.length <= 1) return;
-                    let currentIndex = 0;
-                    setInterval(() => {
-                        slides[currentIndex].style.display = 'none';
-                        currentIndex = (currentIndex + 1) % slides.length;
-                        slides[currentIndex].style.display = 'block';
-                    }, 5000); // Troca de banner a cada 5 segundos sem mostrar bublis
-                });
-                </script>
-<?php
-            }
-        }
-    }
-} catch (Throwable $e) {
-    echo "<!-- Erro Banners Topo: " . $e->getMessage() . " -->";
-}
-?>
-    
     <!-- Menu Sanfona (Accordion) Sidebar -->
     <div id="sidebar-menu" style="display: none; position: fixed; left: 0; top: 0; width: 280px; height: 100vh; background: var(--color-surface); z-index: 10000; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.5); overflow-y: auto;">
         <button onclick="this.parentElement.style.display='none'" style="float: right; border: none; background: transparent; font-size: 1.8rem; cursor: pointer; color: var(--color-text);">&times;</button>

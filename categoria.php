@@ -89,6 +89,8 @@ $noticias = $stmtNoticias->fetchAll();
 
 $page_title = $categoria['nome'];
 require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/banners.php';
+renderBannerBand($pdo, 'category', 'TOP', $categoria['slug']);
 ?>
 
 <div class="container" style="padding-top: 15px;">
@@ -114,6 +116,8 @@ require_once __DIR__ . '/includes/header.php';
             <p style="grid-column: 1 / -1; font-family: var(--font-family); color: var(--color-text-muted); font-size: 1.1rem;">Nenhuma notícia encontrada nesta categoria.</p>
         <?php endif; ?>
     </div>
+
+    <?php renderBannerBand($pdo, 'category', 'MIDDLE', $categoria['slug']); ?>
 
     <!-- Paginação -->
     <?php if ($total_pages > 1): ?>
@@ -175,4 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php
+renderBannerBand($pdo, 'category', 'BOTTOM', $categoria['slug']);
+require_once __DIR__ . '/includes/footer.php';
+?>

@@ -1,235 +1,157 @@
 <?php
-$page_title = "Gerenciar Banners Publicitários";
+$page_title = 'Gerenciar Banners Publicitários';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/auth.php';
 requireAdmin();
-require_once __DIR__ . '/includes/header.php';
-
+require_once __DIR__ . '/../includes/banner_admin.php';
 $pdo = Database::getInstance();
-
 $erro = '';
-$sucesso = '';
-
-// Adicionar / Editar Banner
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!validateCsrfToken($_POST['csrf_token'] ?? '')) die("Acesso Negado (CSRF).");
-    $titulo = trim($_POST['titulo']);
-    $link = trim($_POST['link']);
-    $status = $_POST['status'] ?? 'ativo';
-    $id = $_POST['id'] ?? null;
-    
-    if (empty($titulo) || empty($link)) {
-        $erro = "Os campos Título e Link são obrigatórios.";
-    } else {
-        $imagem_nome = null;
-        
-        // Verifica se há upload de imagem
-        if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] === UPLOAD_ERR_OK) {
-            $upload = uploadImage($_FILES['imagem'], 'banners');
-            if ($upload['success']) {
-                $imagem_nome = $upload['filename'];
-            } else {
-                $erro = $upload['message'];
-            }
+$available = false;
+$edit = null;
+$banners = $categories = [];
+try {
+    bannerInstall($pdo);
+    $available = true;
+    $categories = bannerCategories($pdo);
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+        if (bannerPostExceeded()) {
+            http_response_code(413);
+            throw new RuntimeException('O envio excedeu o limite total do servidor. Atualize a página e envie novamente; as imagens serão enviadas em partes.');
         }
-        
-        if (empty($erro)) {
-            if ($id) {
-                // Se enviou imagem nova, atualiza a imagem. Se não, mantem a antiga
-                if ($imagem_nome) {
-                    $stmt = $pdo->prepare("UPDATE banners SET titulo = ?, link = ?, status = ?, imagem = ? WHERE id = ?");
-                    $stmt->execute([$titulo, $link, $status, $imagem_nome, $id]);
-                } else {
-                    $stmt = $pdo->prepare("UPDATE banners SET titulo = ?, link = ?, status = ? WHERE id = ?");
-                    $stmt->execute([$titulo, $link, $status, $id]);
-                }
-                $sucesso = "Banner atualizado com sucesso.";
-            } else {
-                if (!$imagem_nome) {
-                    $erro = "A imagem é obrigatória para novos banners.";
-                } else {
-                    $stmt = $pdo->prepare("INSERT INTO banners (titulo, imagem, link, status) VALUES (?, ?, ?, ?)");
-                    $stmt->execute([$titulo, $imagem_nome, $link, $status]);
-                    $sucesso = "Banner criado com sucesso.";
-                }
-            }
-        }
-    }
-}
-
-// Ativar / Desativar rápido
-if (isset($_GET['toggle']) && is_numeric($_GET['toggle'])) {
-    if (!validateCsrfToken($_GET['token'] ?? '')) die("Acesso Negado (CSRF).");
-    $id = $_GET['toggle'];
-    $stmt = $pdo->prepare("SELECT status FROM banners WHERE id = ?");
-    $stmt->execute([$id]);
-    $curr = $stmt->fetchColumn();
-    
-    if ($curr) {
-        $new_status = ($curr === 'ativo') ? 'inativo' : 'ativo';
-        $pdo->prepare("UPDATE banners SET status = ? WHERE id = ?")->execute([$new_status, $id]);
-        header("Location: banners.php?msg=status");
+        if (!validateCsrfToken($_POST['csrf_token'] ?? '')) { http_response_code(403); exit('Acesso negado (CSRF).'); }
+        $action = $_POST['action'] ?? 'save';
+        $id = filter_var($_POST['id'] ?? 0, FILTER_VALIDATE_INT, ['options'=>['min_range'=>0]]);
+        if ($id === false) throw new RuntimeException('Campanha inválida.');
+        $edit = $id ? bannerFind($pdo, $id) : null;
+        if ($id && !$edit) { http_response_code(404); throw new RuntimeException('Campanha não encontrada.'); }
+        if ($action === 'delete' && $edit) bannerDelete($pdo, $edit);
+        elseif ($action === 'toggle' && $edit) $pdo->prepare('UPDATE banners SET status = ? WHERE id = ?')->execute([$edit['status'] === 'ativo' ? 'pausado' : 'ativo', $id]);
+        elseif ($action === 'save') bannerSave($pdo, $_POST, $_FILES, $edit);
+        else throw new RuntimeException('Ação inválida.');
+        header('Location: banners.php?msg=' . ($action === 'delete' ? 'deleted' : ($action === 'toggle' ? 'status' : 'saved')));
         exit;
     }
-}
-
-// Excluir Banner
-if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
-    if (!validateCsrfToken($_GET['token'] ?? '')) die("Acesso Negado (CSRF).");
-    $id = $_GET['delete'];
-    
-    $stmt = $pdo->prepare("SELECT imagem FROM banners WHERE id = ?");
-    $stmt->execute([$id]);
-    $img = $stmt->fetchColumn();
-    
-    if ($img && file_exists(__DIR__ . '/../uploads/banners/' . $img)) {
-        unlink(__DIR__ . '/../uploads/banners/' . $img);
+    if (isset($_GET['edit'])) {
+        $id = filter_var($_GET['edit'], FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+        $edit = $id ? bannerFind($pdo, $id) : null;
+        if (!$edit) { http_response_code(404); throw new RuntimeException('Campanha não encontrada.'); }
     }
-    
-    $pdo->prepare("DELETE FROM banners WHERE id = ?")->execute([$id]);
-    header("Location: banners.php?msg=deleted");
-    exit;
+} catch (RuntimeException $error) {
+    if ($error instanceof PDOException) {
+        error_log('Admin Banners: ' . $error->getMessage());
+        $erro = 'Não foi possível acessar ou salvar os banners. Confira as permissões do banco e o log da hospedagem.';
+    } else $erro = $error->getMessage();
 }
-
-$banners = $pdo->query("SELECT * FROM banners ORDER BY criado_em DESC")->fetchAll();
-
-$edit_banner = null;
-if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
-    $stmt = $pdo->prepare("SELECT * FROM banners WHERE id = ?");
-    $stmt->execute([$_GET['edit']]);
-    $edit_banner = $stmt->fetch();
+if ($available) $banners = $pdo->query('SELECT b.*, s.* FROM banners b LEFT JOIN banner_settings s ON s.banner_id = b.id ORDER BY b.criado_em DESC, b.id DESC')->fetchAll(PDO::FETCH_ASSOC);
+$values = $edit ?: ['status'=>'pausado'];
+if ($erro && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && ($_POST['action'] ?? 'save') === 'save') $values = array_merge($values, $_POST);
+$selectedSlots = is_array($values['slots'] ?? null) ? $values['slots'] : (json_decode($values['slots'] ?? '[]', true) ?: []);
+$selectedCategories = is_array($values['categories'] ?? null) ? $values['categories'] : (json_decode($values['categories'] ?? '[]', true) ?: []);
+if ($erro && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+    $values['show_home'] = isset($_POST['show_home']);
+    $values['all_categories'] = isset($_POST['all_categories']);
 }
+$messages = ['saved'=>'Campanha salva com sucesso.', 'deleted'=>'Campanha excluída.', 'status'=>'Status atualizado.'];
+require_once __DIR__ . '/includes/header.php';
 ?>
-
-<div class="editorial-grid">
-    
-    <!-- Formulário -->
-    <div class="card" style="margin-bottom: 0;">
-        <div class="card-header">
-            <h3 class="card-title">
-                <i class="fas fa-bullhorn"></i> <?= $edit_banner ? 'Editar Banner' : 'Cadastrar Novo Banner' ?>
-            </h3>
-        </div>
-        
-        <?php if ($erro): ?>
-            <div style="padding: 12px 16px; background-color: var(--adm-danger-bg); color: var(--adm-danger-text); margin-bottom: 16px; border-radius: var(--adm-radius-sm); font-weight: 600; font-size: 0.875rem;">
-                <i class="fas fa-exclamation-circle"></i> <?= escape($erro) ?>
-            </div>
-        <?php endif; ?>
-        <?php if ($sucesso || (isset($_GET['msg']) && $_GET['msg'] == 'deleted') || (isset($_GET['msg']) && $_GET['msg'] == 'status')): ?>
-            <div style="padding: 12px 16px; background-color: var(--adm-success-bg); color: var(--adm-success-text); margin-bottom: 16px; border-radius: var(--adm-radius-sm); font-weight: 600; font-size: 0.875rem;">
-                <i class="fas fa-check-circle"></i> 
-                <?php 
-                    if (isset($_GET['msg']) && $_GET['msg'] == 'deleted') echo "Banner excluído com sucesso.";
-                    else if (isset($_GET['msg']) && $_GET['msg'] == 'status') echo "Status do banner atualizado.";
-                    else echo $sucesso;
-                ?>
-            </div>
-        <?php endif; ?>
-
-        <form action="banners.php" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="csrf_token" value="<?= getCsrfToken() ?>">
-            <?php if ($edit_banner): ?>
-                <input type="hidden" name="id" value="<?= $edit_banner['id'] ?>">
-            <?php endif; ?>
-            
-            <div class="form-group">
-                <label>Título / Identificação</label>
-                <input type="text" name="titulo" class="form-control" value="<?= $edit_banner ? escape($edit_banner['titulo']) : '' ?>" placeholder="Ex: Patrocinador Principal" required>
-            </div>
-            
-            <div class="form-group">
-                <label>Link de Destino</label>
-                <input type="url" name="link" class="form-control" value="<?= $edit_banner ? escape($edit_banner['link']) : '' ?>" placeholder="https://exemplo.com.br" required>
-            </div>
-            
-            <div class="form-group">
-                <label>Status</label>
-                <select name="status" class="form-control" style="font-weight: 600;">
-                    <option value="ativo" <?= ($edit_banner && $edit_banner['status'] == 'ativo') ? 'selected' : '' ?>>🟢 Ativo (Visível no portal)</option>
-                    <option value="inativo" <?= ($edit_banner && $edit_banner['status'] == 'inativo') ? 'selected' : '' ?>>⚪ Inativo (Oculto)</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Imagem do Banner</label>
-                <div class="image-preview-wrapper">
-                    <?php if ($edit_banner && $edit_banner['imagem']): ?>
-                        <img id="image-preview-target" src="<?= BASE_URL ?>/uploads/banners/<?= escape($edit_banner['imagem']) ?>" style="width: 100%; max-height: 180px; object-fit: contain; background: #0f172a; border-radius: var(--adm-radius-sm); border: 1px solid var(--adm-border); margin-bottom: 12px; display: block;">
-                    <?php endif; ?>
+<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/banner-admin.css?v=<?= filemtime(__DIR__ . '/../assets/css/banner-admin.css') ?>">
+<div class="banner-admin">
+    <p class="banner-help">Controle a publicidade da Home e de cada editoria. Nenhuma página ou posição é selecionada automaticamente. Campanhas no mesmo slot alternam a cada 5 segundos.</p>
+    <?php if ($erro): ?><p class="banner-notice banner-error" role="alert"><?= escape($erro) ?></p><?php endif; ?>
+    <?php if (isset($messages[$_GET['msg'] ?? ''])): ?><p class="banner-notice" role="status"><?= escape($messages[$_GET['msg']]) ?></p><?php endif; ?>
+    <?php if ($available): ?>
+    <div class="banner-admin-grid">
+        <div class="card">
+            <div class="card-header"><h3 class="card-title"><?= $edit ? 'Editar campanha' : 'Cadastrar campanha' ?></h3></div>
+            <form id="banner-campaign-form" action="banners.php" method="POST" enctype="multipart/form-data" data-turbo="false" data-upload-url="<?= BASE_URL ?>/admin/banner_upload.php" data-max-file-size="<?= bannerMaxUploadSize() ?>">
+                <input type="hidden" name="csrf_token" value="<?= getCsrfToken() ?>">
+                <input type="hidden" name="action" value="save">
+                <?php if ($edit): ?><input type="hidden" name="id" value="<?= (int)$edit['id'] ?>"><?php endif; ?>
+                <input type="hidden" name="imagem_token" value="<?= escape($values['imagem_token'] ?? '') ?>">
+                <input type="hidden" name="imagem_mobile_token" value="<?= escape($values['imagem_mobile_token'] ?? '') ?>">
+                <div class="form-group"><label for="ad-title">Nome da campanha</label><input id="ad-title" class="form-control" name="titulo" maxlength="255" value="<?= escape($values['titulo'] ?? '') ?>" required></div>
+                <div class="form-group"><label for="ad-advertiser">Nome do anunciante</label><input id="ad-advertiser" class="form-control" name="anunciante" maxlength="255" value="<?= escape($values['anunciante'] ?? '') ?>" required></div>
+                <div class="form-group"><label for="ad-link">Link de destino</label><input id="ad-link" class="form-control" type="url" name="link" maxlength="255" placeholder="https://" value="<?= escape($values['link'] ?? '') ?>" required></div>
+                <div class="form-group">
+                    <label for="ad-desktop">Banner Desktop / Tablet (obrigatório)</label>
+                    <?php if (!empty($edit['imagem'])): ?><img class="banner-preview" src="<?= escape(bannerUrl($edit['imagem'])) ?>" alt="Criativo desktop atual"><?php endif; ?>
+                    <input id="ad-desktop" type="file" class="form-control" name="imagem" accept="image/webp,image/jpeg,image/png" <?= empty($edit['imagem']) && empty($values['imagem_token']) ? 'required' : '' ?>>
                 </div>
-                <input type="file" name="imagem" class="form-control" accept="image/*" <?= !$edit_banner ? 'required' : '' ?> style="padding: 10px;">
-                <small style="display: block; margin-top: 6px; color: var(--adm-text-muted); font-size: 0.75rem;">Formato horizontal recomendado: 970x250px ou 1050x250px (JPG, PNG ou WEBP).</small>
-            </div>
-            
-            <button type="submit" class="btn btn-accent" style="width: 100%; margin-top: 10px;">
-                <i class="fas fa-check"></i> <?= $edit_banner ? 'Atualizar Banner' : 'Cadastrar Banner' ?>
-            </button>
-            <?php if ($edit_banner): ?>
-                <a href="banners.php" class="btn btn-outline" style="width: 100%; margin-top: 8px;">Cancelar Edição</a>
-            <?php endif; ?>
-        </form>
-    </div>
-
-    <!-- Tabela -->
-    <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 0;">
-        <div style="padding: 20px 24px; border-bottom: 1px solid var(--adm-border-subtle);">
-            <h3 class="card-title">
-                <i class="fas fa-images"></i> Banners Ativos e Histórico (<?= count($banners) ?>)
-            </h3>
-        </div>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 100px;">Prévia</th>
-                        <th>Campanha</th>
-                        <th>Status</th>
-                        <th style="text-align: right;">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (count($banners) > 0): ?>
-                        <?php foreach ($banners as $banner): ?>
-                        <tr>
-                            <td>
-                                <img src="<?= BASE_URL ?>/uploads/banners/<?= escape($banner['imagem']) ?>" style="width: 90px; height: 35px; object-fit: cover; border-radius: 4px; border: 1px solid var(--adm-border); display: block;">
-                            </td>
-                            <td>
-                                <div style="font-weight: 600; color: var(--adm-text-main); font-size: 0.9rem;"><?= escape($banner['titulo']) ?></div>
-                                <a href="<?= escape($banner['link']) ?>" target="_blank" style="font-size: 0.8rem; color: #2563eb; text-decoration: underline;"><?= escape(mb_strimwidth($banner['link'], 0, 35, '...')) ?></a>
-                            </td>
-                            <td>
-                                <?php if ($banner['status'] == 'ativo'): ?>
-                                    <span class="badge badge-success">Ativo</span>
-                                <?php else: ?>
-                                    <span class="badge" style="background: #f1f5f9; color: var(--adm-text-muted);">Inativo</span>
-                                <?php endif; ?>
-                            </td>
-                            <td style="text-align: right; white-space: nowrap;">
-                                <a href="banners.php?toggle=<?= $banner['id'] ?>&token=<?= getCsrfToken() ?>" class="btn btn-sm btn-outline btn-icon" title="<?= $banner['status'] == 'ativo' ? 'Ocultar no site' : 'Ativar no site' ?>">
-                                    <i class="fas <?= $banner['status'] == 'ativo' ? 'fa-eye-slash' : 'fa-eye' ?>"></i>
-                                </a>
-                                <a href="banners.php?edit=<?= $banner['id'] ?>" class="btn btn-sm btn-outline btn-icon" title="Editar">
-                                    <i class="fas fa-pen"></i>
-                                </a>
-                                <a href="banners.php?delete=<?= $banner['id'] ?>&token=<?= getCsrfToken() ?>" class="btn btn-sm btn-outline btn-icon btn-danger" onclick="return confirm('Deseja realmente remover este banner?')" title="Excluir">
-                                    <i class="fas fa-trash"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="4" style="text-align: center; padding: 40px 20px; color: var(--adm-text-muted);">
-                                <i class="fas fa-bullhorn" style="font-size: 2rem; display: block; margin-bottom: 10px; color: var(--adm-text-light);"></i>
-                                Nenhum banner cadastrado ainda.
-                            </td>
-                        </tr>
+                <div class="form-group">
+                    <label for="ad-mobile">Banner Mobile (opcional)</label>
+                    <?php if (!empty($edit['imagem_mobile'])): ?>
+                        <img class="banner-preview" src="<?= escape(bannerUrl($edit['imagem_mobile'])) ?>" alt="Criativo mobile atual">
+                        <label class="banner-choice"><input type="checkbox" name="remove_mobile" value="1" <?= !empty($values['remove_mobile']) ? 'checked' : '' ?>> Remover criativo mobile atual</label>
                     <?php endif; ?>
-                </tbody>
-            </table>
+                    <input id="ad-mobile" type="file" class="form-control" name="imagem_mobile" accept="image/webp,image/jpeg,image/png">
+                    <p class="banner-help">WebP, JPG, JPEG ou PNG, até <?= escape(bannerUploadLimitLabel()) ?> por arquivo. As imagens são enviadas automaticamente em partes. Sem arte mobile, a arte desktop mantém sua proporção. Laterais ficam ocultas em telas sem espaço.</p>
+                </div>
+                <fieldset><legend>Exibir em</legend>
+                    <label class="banner-choice"><input type="checkbox" name="show_home" value="1" <?= !empty($values['show_home']) ? 'checked' : '' ?>> Exibir também na Home</label>
+                    <label class="banner-choice"><input type="checkbox" name="all_categories" value="1" <?= !empty($values['all_categories']) ? 'checked' : '' ?>> Exibir em todas as editorias</label>
+                    <p class="banner-help">Todas as editorias inclui editorias futuras e não inclui a Home. Ao desmarcar, somente as editorias selecionadas abaixo recebem a campanha.</p>
+                    <div class="banner-choices"><?php foreach ($categories as $category): ?>
+                        <label class="banner-choice"><input type="checkbox" name="categories[]" value="<?= escape($category['slug']) ?>" <?= in_array($category['slug'], $selectedCategories, true) ? 'checked' : '' ?>> <?= escape($category['nome']) ?></label>
+                    <?php endforeach; ?></div>
+                </fieldset>
+                <fieldset><legend>Posições do anúncio</legend>
+                    <div class="banner-choices"><?php foreach (bannerSlots() as $code => $label): ?>
+                        <label class="banner-choice"><input type="checkbox" name="slots[]" value="<?= $code ?>" <?= in_array($code, $selectedSlots, true) ? 'checked' : '' ?>> <?= $label ?></label>
+                    <?php endforeach; ?></div>
+                </fieldset>
+                <details class="banner-sizes" open><summary>Tamanhos dos banners</summary>
+                    <p>Topo (recomendado): desktop/tablet 970 × 90 px; mobile 320 × 100 px.</p>
+                    <p>Meio e rodapé (recomendados): desktop/tablet 970 × 250 px; mobile 320 × 100 ou 300 × 250 px.</p>
+                    <p>Laterais (permitidos): 120 × 600, 160 × 600 ou 300 × 600 px. Novos criativos laterais precisam ter exatamente um desses tamanhos e são exibidos na largura do formato, somente quando há espaço livre.</p>
+                    <p>As artes laterais já cadastradas continuam disponíveis. Ao substituir a imagem, utilize um dos formatos permitidos. Arquivos aceitos: WebP, JPG, JPEG e PNG.</p>
+                </details>
+                <div class="banner-choices">
+                    <?php foreach (['starts_at'=>'Data inicial', 'ends_at'=>'Data final'] as $field => $label): ?>
+                    <div class="form-group"><label for="ad-<?= $field ?>"><?= $label ?></label><input id="ad-<?= $field ?>" type="datetime-local" class="form-control" name="<?= $field ?>" value="<?= escape(!empty($values[$field]) ? substr(str_replace(' ', 'T', $values[$field]), 0, 16) : '') ?>"></div>
+                    <?php endforeach; ?>
+                </div>
+                <p class="banner-help">Horário de São Paulo (America/Sao_Paulo). Agora: <?= escape(bannerNow()) ?>. Data inicial vazia: início imediato. Data final vazia: sem data final.</p>
+                <div class="form-group"><label for="ad-status">Status</label><select id="ad-status" name="status" class="form-control">
+                    <option value="pausado" <?= ($values['status'] ?? '') !== 'ativo' ? 'selected' : '' ?>>Pausado</option>
+                    <option value="ativo" <?= ($values['status'] ?? '') === 'ativo' ? 'selected' : '' ?>>Ativo</option>
+                </select></div>
+                <p id="banner-upload-status" class="banner-help" role="status" aria-live="polite" hidden></p>
+                <button class="btn btn-accent" type="submit"><?= $edit ? 'Salvar alterações' : 'Cadastrar campanha' ?></button>
+                <?php if ($edit): ?><a class="btn btn-outline" href="banners.php">Cancelar edição</a><?php endif; ?>
+            </form>
+        </div>
+        <div class="card banner-list">
+            <div class="card-header"><h3 class="card-title">Campanhas (<?= count($banners) ?>)</h3></div>
+            <?php if (!$banners): ?><p class="banner-help">Nenhuma campanha cadastrada.</p><?php endif; ?>
+            <?php foreach ($banners as $banner):
+                $places = json_decode($banner['categories'] ?? '[]', true) ?: [];
+                if (!empty($banner['all_categories'])) $places = ['Todas as editorias'];
+                if (!empty($banner['show_home'])) array_unshift($places, 'Home');
+                $positions = json_decode($banner['slots'] ?? '[]', true) ?: [];
+            ?>
+            <article class="banner-campaign">
+                <img class="banner-preview" src="<?= escape(bannerUrl($banner['imagem'])) ?>" alt="<?= escape($banner['titulo']) ?>" loading="lazy">
+                <h4><?= escape($banner['titulo']) ?></h4>
+                <p><?= escape($banner['anunciante'] ?? '') ?> · <strong><?= $banner['status'] === 'ativo' ? 'Ativo' : 'Pausado' ?></strong></p>
+                <p class="banner-help"><?= escape(implode(', ', $places)) ?></p>
+                <p class="banner-help"><?= escape(implode(', ', array_map(function ($slot) { return bannerSlots()[$slot] ?? $slot; }, $positions))) ?></p>
+                <p class="banner-help"><?= escape($banner['starts_at'] ?? 'Início imediato') ?> → <?= escape($banner['ends_at'] ?? 'Sem data final') ?></p>
+                <p class="banner-help"><?= escape(bannerVisibilityMessage($banner)) ?></p>
+                <div class="banner-actions">
+                    <a class="btn btn-sm btn-outline" href="banners.php?edit=<?= (int)$banner['id'] ?>">Editar</a>
+                    <?php foreach (['toggle'=>($banner['status'] === 'ativo' ? 'Pausar' : 'Ativar'), 'delete'=>'Excluir'] as $action => $label): ?>
+                    <form method="POST" action="banners.php" <?= $action === 'delete' ? 'onsubmit="return confirm(\'Excluir esta campanha?\')"' : '' ?>>
+                        <input type="hidden" name="csrf_token" value="<?= getCsrfToken() ?>"><input type="hidden" name="id" value="<?= (int)$banner['id'] ?>"><input type="hidden" name="action" value="<?= $action ?>">
+                        <button class="btn btn-sm btn-outline" type="submit"><?= $label ?></button>
+                    </form>
+                    <?php endforeach; ?>
+                </div>
+            </article>
+            <?php endforeach; ?>
         </div>
     </div>
+    <?php endif; ?>
 </div>
-
+<script src="<?= BASE_URL ?>/assets/js/banner-admin.js?v=<?= filemtime(__DIR__ . '/../assets/js/banner-admin.js') ?>" defer></script>
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
